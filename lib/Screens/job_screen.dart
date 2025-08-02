@@ -11,6 +11,7 @@ class JobPage extends StatefulWidget {
 }
 
 class _JobPageState extends State<JobPage> {
+  final TextEditingController _controller = TextEditingController();
   late bool isSaved;
 
   @override
@@ -123,6 +124,41 @@ class _JobPageState extends State<JobPage> {
           ],
 
           const SizedBox(height: 30),
+
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border.all(color: Colors.grey.shade300),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 40, maxHeight: 150),
+              child: Scrollbar(
+                child: TextField(
+                  controller: _controller,
+                  maxLines: null,
+                  keyboardType: TextInputType.multiline,
+                  textInputAction: TextInputAction.newline,
+                  decoration: const InputDecoration(
+                    hintText: "Ask something about this job...",
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.only(left: 10),
+                  ),
+                  onSubmitted: (value) {
+                    if (value.trim().isNotEmpty) {
+                      // Optional: Handle submit logic here
+                      print("User asked: $value");
+                      _controller.clear();
+                      FocusScope.of(context).unfocus();
+                    }
+                  },
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 16),
 
           // ✅ Save/Unsave Toggle
           ElevatedButton.icon(
