@@ -1,3 +1,4 @@
+import 'package:career_guidance/Screens/mentor_screen.dart';
 import 'package:flutter/material.dart';
 import '../data/saved_jobs.dart'; // contains: List<Map<String, dynamic>> savedJobs = [];
 
@@ -132,31 +133,55 @@ class _JobPageState extends State<JobPage> {
               border: Border.all(color: Colors.grey.shade300),
               borderRadius: BorderRadius.circular(20),
             ),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: 40, maxHeight: 150),
-              child: Scrollbar(
-                child: TextField(
-                  controller: _controller,
-                  maxLines: null,
-                  keyboardType: TextInputType.multiline,
-                  textInputAction: TextInputAction.newline,
-                  decoration: const InputDecoration(
-                    hintText: "Ask something about this job...",
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.only(left: 10),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                // 🧠 Text Input
+                Expanded(
+                  child: TextField(
+                    controller: _controller,
+                    keyboardType: TextInputType.multiline,
+                    textInputAction: TextInputAction.newline,
+                    minLines: 1,
+                    maxLines: 8, // allows growth up to 8 lines
+                    decoration: const InputDecoration(
+                      hintText: "Ask something about this job...",
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.symmetric(horizontal: 9),
+                    ),
                   ),
-                  onSubmitted: (value) {
-                    if (value.trim().isNotEmpty) {
-                      // Optional: Handle submit logic here
-                      print("User asked: $value");
-                      _controller.clear();
-                      FocusScope.of(context).unfocus();
-                    }
-                  },
                 ),
-              ),
+
+                // 🚀 Submit Button
+                Container(
+                  height: 40,
+                  width: 40,
+                  decoration: const BoxDecoration(
+                    shape:  BoxShape.circle,
+                    color: Colors.blueAccent,
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.send),
+                    color: Colors.blueAccent,
+                    onPressed: () {
+                      final text = _controller.text.trim();
+                      if (text.isNotEmpty) {
+                        _controller.clear();
+                        FocusScope.of(context).unfocus();
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => MentorScreen(initialMessage: text),
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                ),
+              ],
             ),
           ),
+
 
           const SizedBox(height: 16),
 

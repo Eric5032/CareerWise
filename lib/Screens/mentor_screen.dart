@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import '../Services/mentor_service.dart';
 
 class MentorScreen extends StatefulWidget {
-  const MentorScreen({super.key});
+  final String? initialMessage;
+
+  const MentorScreen({super.key, this.initialMessage});
 
   @override
   State<MentorScreen> createState() => _MentorScreenState();
@@ -12,6 +14,32 @@ class _MentorScreenState extends State<MentorScreen> {
   final TextEditingController _controller = TextEditingController();
   final List<Map<String, String>> _messages = [];
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    if (widget.initialMessage != null && widget.initialMessage!.trim().isNotEmpty)
+      _sendMessageFromInit(widget.initialMessage!.trim());
+
+
+  }
+
+  Future<void> _sendMessageFromInit(String text) async {
+    setState(() {
+      _messages.add({'role' : 'user', 'content' : text});
+      _isLoading = true;
+    });
+
+    final reply = await MentorService().getMentorReply(text);
+
+    setState(() {
+      if (reply != null) {
+        _messages.add({'role': 'mentor', 'content': reply});
+      }
+      _isLoading = false;
+    });
+  }
 
   Future<void> _sendMessage() async {
     final text = _controller.text.trim();
