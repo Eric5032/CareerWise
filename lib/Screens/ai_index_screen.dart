@@ -3,11 +3,38 @@ import '../data/temp_jobs.dart';
 import '../Services/risk_factor_service.dart';
 import 'job_screen.dart';
 
-class AIIndexScreen extends StatelessWidget {
+class AIIndexScreen extends StatefulWidget {
   const AIIndexScreen({super.key});
 
+  @override
+  State<AIIndexScreen> createState() => _AIIndexScreenState();
+}
+
+class _AIIndexScreenState extends State<AIIndexScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  bool _isSearching = false;
+  String _query = '';
+
+  void _toggleSearch() {
+    setState(() {
+      _isSearching = !_isSearching;
+      _query = '';
+      _searchController.clear();
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   Widget buildSection(String title, Map<String, String> jobs, BuildContext context) {
-    final entries = jobs.entries.toList();
+    final entries = jobs.entries
+        .where((e) => e.key.toLowerCase().contains(_query.toLowerCase()))
+        .toList();
+
+    if (entries.isEmpty) return const SizedBox.shrink();
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 30),
@@ -80,26 +107,49 @@ class AIIndexScreen extends StatelessWidget {
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 1,
+        actions: [
+          IconButton(
+            icon: Icon(_isSearching ? Icons.close : Icons.search),
+            onPressed: _toggleSearch,
+          ),
+        ],
       ),
       backgroundColor: const Color(0xFFF2F2F2),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              buildSection("STEM", tempJobs["STEM"] ?? {}, context),
-              buildSection("Healthcare", tempJobs["Healthcare"] ?? {}, context),
-              buildSection("Transportation", tempJobs["Transportation"] ?? {}, context),
-              buildSection("Education", tempJobs["Education"] ?? {}, context),
-              buildSection("Arts & Design", tempJobs["Arts & Design"] ?? {}, context),
-              buildSection("Finance & Business", tempJobs["Finance & Business"] ?? {}, context),
-              buildSection("Trades & Construction", tempJobs["Trades & Construction"] ?? {}, context),
-              buildSection("Law & Government", tempJobs["Law & Government"] ?? {}, context),
-              buildSection("Hospitality", tempJobs["Hospitality"] ?? {}, context),
-            ],
+      body: Column(
+        children: [
+          if (_isSearching)
+            Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: TextField(
+                controller: _searchController,
+                onChanged: (value) => setState(() => _query = value),
+                decoration: InputDecoration(
+                  hintText: "Search jobs...",
+                  prefixIcon: const Icon(Icons.search),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+            ),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  buildSection("STEM", tempJobs["STEM"] ?? {}, context),
+                  buildSection("Healthcare", tempJobs["Healthcare"] ?? {}, context),
+                  buildSection("Transportation", tempJobs["Transportation"] ?? {}, context),
+                  buildSection("Education", tempJobs["Education"] ?? {}, context),
+                  buildSection("Arts & Design", tempJobs["Arts & Design"] ?? {}, context),
+                  buildSection("Finance & Business", tempJobs["Finance & Business"] ?? {}, context),
+                  buildSection("Trades & Construction", tempJobs["Trades & Construction"] ?? {}, context),
+                  buildSection("Law & Government", tempJobs["Law & Government"] ?? {}, context),
+                  buildSection("Hospitality", tempJobs["Hospitality"] ?? {}, context),
+                ],
+              ),
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
