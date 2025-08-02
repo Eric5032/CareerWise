@@ -1,6 +1,6 @@
 import 'package:career_guidance/Theme/theme.dart';
 import 'package:flutter/material.dart';
-import 'Navigation/HomePage.dart';
+import 'Screens/home_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});

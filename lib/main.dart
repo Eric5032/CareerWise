@@ -1,20 +1,28 @@
 import 'package:flutter/material.dart';
 import 'SplashScreen.dart';
-import 'Theme/theme.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-void main() {
-  runApp(const MyApp());
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: "assets/.env");
+  runApp(const CareerApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
 
-  // This widget is the root of your application.
+class CareerApp extends StatelessWidget {
+  const CareerApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        theme: lightTheme,
-        home: SplashScreen());
+      title: 'Career Guidance',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        scaffoldBackgroundColor: const Color(0xFFF2F2F2),
+      ),
+      home: const SplashScreen(), // Start at splash
+    );
   }
 }
-

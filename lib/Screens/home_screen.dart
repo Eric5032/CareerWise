@@ -1,9 +1,7 @@
-import 'package:career_guidance/Navigation/JobList.dart';
-import 'package:career_guidance/Navigation/ai_index_screen.dart';
-import 'package:career_guidance/Navigation/save_page.dart';
+import 'package:career_guidance/Screens/ai_index_screen.dart';
+import 'package:career_guidance/Screens/saved_jobs_list_screen.dart';
 import 'package:career_guidance/Theme/theme.dart';
 import 'package:flutter/material.dart';
-import 'save_page.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -62,7 +60,7 @@ class HomePage extends StatelessWidget {
                       onTap: (){
                         Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => SavePage())
+                            MaterialPageRoute(builder: (context) => SavedJobsScreen())
                         );
                       }
                   ),

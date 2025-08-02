@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import '../data/jobs.dart';
-import '../OpenAI/job_page.dart';
+import '../data/temp_jobs.dart';
 import '../Services/risk_factor_service.dart';
-
+import 'job_screen.dart';
 
 class AIIndexScreen extends StatelessWidget {
   const AIIndexScreen({super.key});
 
-  Widget buildSection(String title, Map<String, Map<String, dynamic>> jobs) {
-    final entries = jobs.entries.toList(); // Convert map to list
+  Widget buildSection(String title, Map<String, String> jobs, BuildContext context) {
+    final entries = jobs.entries.toList();
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 30),
@@ -28,13 +26,13 @@ class AIIndexScreen extends StatelessWidget {
               itemCount: entries.length,
               separatorBuilder: (context, index) => const SizedBox(width: 12),
               itemBuilder: (context, index) {
-                final entry = entries[index];
-                final categoryTitle = entry.key;
-                final jobData = entry.value;
+                final jobTitle = entries[index].key;
+                final imageUrl = entries[index].value;
 
                 return JobsTemplate(
-                  imageUrl: jobData['image']!,
-                  JobTitle: categoryTitle,
+                  imageUrl: imageUrl,
+                  jobTitle: jobTitle,
+                  onTap: () => _openJobResult(context, jobTitle),
                 );
               },
             ),
@@ -42,6 +40,36 @@ class AIIndexScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _openJobResult(BuildContext context, String jobTitle) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      final result = await CareerAIService().getAutomationRisk(jobTitle);
+
+      if (context.mounted) Navigator.pop(context);
+
+      if (result != null && context.mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => JobPage(jobData: result)),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to get job data.')),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
   }
 
   @override
@@ -60,9 +88,15 @@ class AIIndexScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              buildSection("STEM", jobSectors["STEM"] ?? {}),
-              buildSection("Healthcare & Medical", jobSectors["Healthcare & Medical"] ?? {}),
-              buildSection("Transportation & Logistics", jobSectors["Transportation & Logistics"] ?? {}),
+              buildSection("STEM", tempJobs["STEM"] ?? {}, context),
+              buildSection("Healthcare", tempJobs["Healthcare"] ?? {}, context),
+              buildSection("Transportation", tempJobs["Transportation"] ?? {}, context),
+              buildSection("Education", tempJobs["Education"] ?? {}, context),
+              buildSection("Arts & Design", tempJobs["Arts & Design"] ?? {}, context),
+              buildSection("Finance & Business", tempJobs["Finance & Business"] ?? {}, context),
+              buildSection("Trades & Construction", tempJobs["Trades & Construction"] ?? {}, context),
+              buildSection("Law & Government", tempJobs["Law & Government"] ?? {}, context),
+              buildSection("Hospitality", tempJobs["Hospitality"] ?? {}, context),
             ],
           ),
         ),
@@ -71,28 +105,22 @@ class AIIndexScreen extends StatelessWidget {
   }
 }
 
-
 class JobsTemplate extends StatelessWidget {
   final String imageUrl;
-  final String JobTitle;
+  final String jobTitle;
+  final VoidCallback onTap;
 
   const JobsTemplate({
     required this.imageUrl,
-    this.JobTitle = "Title",
+    required this.jobTitle,
+    required this.onTap,
     super.key,
   });
-  void _openJobs(BuildContext context, String area){
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => )
-    )
-  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        final result = await CareerAIService().getAutomationRisk(jobTitle);
-      }
+      onTap: onTap,
       child: Container(
         width: 320,
         height: 160,
@@ -110,18 +138,12 @@ class JobsTemplate extends StatelessWidget {
         ),
         child: Stack(
           children: [
-            // Bottom image
             Positioned.fill(
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(20),
-                child: Image(
-                  image: NetworkImage(imageUrl),
-                  fit: BoxFit.cover,
-                ),
+                child: Image.network(imageUrl, fit: BoxFit.cover),
               ),
             ),
-      
-            // Semi-transparent overlay (optional, helps make text readable)
             Positioned.fill(
               child: Container(
                 decoration: BoxDecoration(
@@ -130,11 +152,9 @@ class JobsTemplate extends StatelessWidget {
                 ),
               ),
             ),
-      
-            // Centered text
             Center(
               child: Text(
-                JobTitle,
+                jobTitle,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: 18,

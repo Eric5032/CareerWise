@@ -1,40 +1,65 @@
-// job_categories.dart
-
-final Map<String, List<String>> jobCategories = {
-  'STEM': [
-    'Software Developer',
-    'Data Scientist',
-    'Civil Engineer',
-    'Mechanical Engineer',
-    'Biologist',
-    'Physicist',
-  ],
-  'Healthcare & Medical': [
-    'Registered Nurse',
-    'Physician',
-    'Physical Therapist',
-    'Lab Technician',
-    'Surgeon',
-  ],
-  'Transportation & Logistics': [
-    'Truck Driver',
-    'Logistics Coordinator',
-    'Pilot',
-    'Flight Attendant',
-    'Forklift Operator',
-  ],
-  'Business & Finance': [
-    'Accountant',
-    'Financial Analyst',
-    'Marketing Manager',
-    'HR Specialist',
-    'Project Manager',
-  ],
-  'Arts & Media': [
-    'Graphic Designer',
-    'Journalist',
-    'Photographer',
-    'Video Editor',
-    'Animator',
-  ],
+final Map<String, Map<String, String>> tempJobs = {
+  "STEM": {
+    "Software Engineer": "https://cdn-icons-png.flaticon.com/512/2721/2721296.png",
+    "Data Scientist": "https://cdn-icons-png.flaticon.com/512/3523/3523063.png",
+    "Mechanical Engineer": "https://cdn-icons-png.flaticon.com/512/1043/1043455.png",
+    "Civil Engineer": "https://cdn-icons-png.flaticon.com/512/2942/2942169.png",
+    "AI Researcher": "https://cdn-icons-png.flaticon.com/512/1143/1143654.png",
+  },
+  "Healthcare": {
+    "Nurse": "https://cdn-icons-png.flaticon.com/512/2784/2784445.png",
+    "Surgeon": "https://cdn-icons-png.flaticon.com/512/3209/3209021.png",
+    "Pharmacist": "https://cdn-icons-png.flaticon.com/512/3209/3209023.png",
+    "Radiologic Technologist": "https://cdn-icons-png.flaticon.com/512/921/921347.png",
+    "Paramedic": "https://cdn-icons-png.flaticon.com/512/2965/2965567.png",
+  },
+  "Transportation": {
+    "Truck Driver": "https://cdn-icons-png.flaticon.com/512/1995/1995464.png",
+    "Train Operator": "https://cdn-icons-png.flaticon.com/512/3163/3163612.png",
+    "Air Traffic Controller": "https://cdn-icons-png.flaticon.com/512/1198/1198365.png",
+    "Pilot": "https://cdn-icons-png.flaticon.com/512/2867/2867771.png",
+    "Delivery Driver": "https://cdn-icons-png.flaticon.com/512/1867/1867474.png",
+  },
+  "Education": {
+    "Teacher": "https://cdn-icons-png.flaticon.com/512/2784/2784464.png",
+    "Professor": "https://cdn-icons-png.flaticon.com/512/3135/3135768.png",
+    "Tutor": "https://cdn-icons-png.flaticon.com/512/3062/3062634.png",
+    "Librarian": "https://cdn-icons-png.flaticon.com/512/906/906175.png",
+    "Instructional Designer": "https://cdn-icons-png.flaticon.com/512/3063/3063788.png",
+  },
+  "Arts & Design": {
+    "Graphic Designer": "https://cdn-icons-png.flaticon.com/512/1055/1055661.png",
+    "Animator": "https://cdn-icons-png.flaticon.com/512/3126/3126333.png",
+    "Interior Designer": "https://cdn-icons-png.flaticon.com/512/3127/3127973.png",
+    "Fashion Designer": "https://cdn-icons-png.flaticon.com/512/944/944807.png",
+    "Illustrator": "https://cdn-icons-png.flaticon.com/512/1802/1802979.png",
+  },
+  "Finance & Business": {
+    "Accountant": "https://cdn-icons-png.flaticon.com/512/2331/2331970.png",
+    "Financial Analyst": "https://cdn-icons-png.flaticon.com/512/1998/1998615.png",
+    "Banker": "https://cdn-icons-png.flaticon.com/512/2331/2331951.png",
+    "Auditor": "https://cdn-icons-png.flaticon.com/512/1998/1998614.png",
+    "Entrepreneur": "https://cdn-icons-png.flaticon.com/512/2345/2345333.png",
+  },
+  "Trades & Construction": {
+    "Electrician": "https://cdn-icons-png.flaticon.com/512/1633/1633683.png",
+    "Plumber": "https://cdn-icons-png.flaticon.com/512/1087/1087815.png",
+    "Welder": "https://cdn-icons-png.flaticon.com/512/2965/2965568.png",
+    "Carpenter": "https://cdn-icons-png.flaticon.com/512/6787/6787762.png",
+    "Construction Worker": "https://cdn-icons-png.flaticon.com/512/1920/1920304.png",
+  },
+  "Law & Government": {
+    "Police Officer": "https://cdn-icons-png.flaticon.com/512/2965/2965532.png",
+    "Lawyer": "https://cdn-icons-png.flaticon.com/512/3209/3209025.png",
+    "Judge": "https://cdn-icons-png.flaticon.com/512/3429/3429524.png",
+    "Firefighter": "https://cdn-icons-png.flaticon.com/512/2965/2965569.png",
+    "Social Worker": "https://cdn-icons-png.flaticon.com/512/2965/2965535.png",
+  },
+  "Hospitality": {
+    "Chef": "https://cdn-icons-png.flaticon.com/512/135/135620.png",
+    "Hotel Manager": "https://cdn-icons-png.flaticon.com/512/1036/1036383.png",
+    "Bartender": "https://cdn-icons-png.flaticon.com/512/1242/1242305.png",
+    "Housekeeper": "https://cdn-icons-png.flaticon.com/512/1995/1995568.png",
+    "Event Planner": "https://cdn-icons-png.flaticon.com/512/3209/3209036.png",
+  }
 };
