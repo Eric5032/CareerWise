@@ -97,27 +97,53 @@ class _MentorScreenState extends State<MentorScreen> {
             padding: EdgeInsets.all(8.0),
             child: CircularProgressIndicator(),
           ),
+
           Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _controller,
-                    decoration: const InputDecoration(
-                      hintText: 'Ask your mentor...',
-                      border: OutlineInputBorder(),
+            padding: const EdgeInsets.fromLTRB(9.0,9.0, 9.0, 18.0),
+            child: Container(
+              constraints: const BoxConstraints(maxHeight: 200),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                border: Border.all(color: Colors.grey.shade300),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _controller,
+                      keyboardType: TextInputType.multiline,
+                      textInputAction: TextInputAction.newline,
+                      minLines: 1,
+                      maxLines: null, // unlimited but capped by parent
+                      decoration: const InputDecoration(
+                        hintText: "Ask something about this job...",
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 9),
+                      ),
                     ),
-                    onSubmitted: (_) => _sendMessage(),
                   ),
-                ),
-                const SizedBox(width: 8),
-                IconButton(
-                  icon: const Icon(Icons.send),
-                  onPressed: _sendMessage,
-                  color: Colors.blue,
-                ),
-              ],
+
+                  // 🚀 Submit Button
+
+                  Container(
+                    height: 40,
+                    width: 40,
+                    decoration: const BoxDecoration(
+                      shape:  BoxShape.circle,
+                      color: Colors.grey,
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.send),
+                      color: Colors.white,
+                      onPressed: () {
+                        _sendMessage();
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],

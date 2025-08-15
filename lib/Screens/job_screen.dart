@@ -127,6 +127,7 @@ class _JobPageState extends State<JobPage> {
           const SizedBox(height: 30),
 
           Container(
+            constraints: const BoxConstraints(maxHeight: 200),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
               color: Colors.white,
@@ -134,35 +135,34 @@ class _JobPageState extends State<JobPage> {
               borderRadius: BorderRadius.circular(20),
             ),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                // 🧠 Text Input
                 Expanded(
                   child: TextField(
                     controller: _controller,
                     keyboardType: TextInputType.multiline,
                     textInputAction: TextInputAction.newline,
                     minLines: 1,
-                    maxLines: 8, // allows growth up to 8 lines
+                    maxLines: null, // unlimited but capped by parent
                     decoration: const InputDecoration(
                       hintText: "Ask something about this job...",
                       border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(horizontal: 9),
+                      contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 9),
                     ),
                   ),
                 ),
 
                 // 🚀 Submit Button
+
                 Container(
                   height: 40,
                   width: 40,
                   decoration: const BoxDecoration(
                     shape:  BoxShape.circle,
-                    color: Colors.blueAccent,
+                    color: Colors.grey,
                   ),
                   child: IconButton(
                     icon: const Icon(Icons.send),
-                    color: Colors.blueAccent,
+                    color: Colors.white,
                     onPressed: () {
                       final text = _controller.text.trim();
                       if (text.isNotEmpty) {
