@@ -3,6 +3,7 @@ import 'package:career_guidance/Screens/ai_index_screen.dart';
 import 'package:career_guidance/Screens/saved_jobs_list_screen.dart';
 import 'package:career_guidance/Screens/mentor_screen.dart';
 import 'package:career_guidance/Theme/theme.dart';
+import 'package:career_guidance/Screens/learn_screen.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -55,7 +56,9 @@ class HomePage extends StatelessWidget {
                   title: "Learn",
                   icon: Icons.school,
                   onTap: () {
-                    // TODO: Add navigation to Learn screen
+                    Navigator.push(context, MaterialPageRoute(
+                      builder: (_) => const LearnScreen(initialTopic: 'nurse job market in Texas'),
+                    ));
                   },
                 ),
                 _buildModuleCard(
