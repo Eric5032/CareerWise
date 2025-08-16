@@ -102,26 +102,70 @@ class _JobPageState extends State<JobPage> {
 
           const SizedBox(height: 20),
 
-          Text("📝 Job Description", style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 8),
-          Text(description),
+          Container(
+            constraints: const BoxConstraints(maxHeight: 200),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border.all(color: Colors.grey.shade300),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("📝 Job Description", style: Theme.of(context).textTheme.titleMedium),
+                const SizedBox(height: 8),
+                Text(description),
+              ],
+            ),
+          ),
 
           const SizedBox(height: 20),
 
-          Text("💡 Why is this the risk?", style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 8),
-          Text(explanation),
+          Container(
+            constraints: const BoxConstraints(maxHeight: 200),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border.all(color: Colors.grey.shade300),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("💡 Why is this the risk?", style: Theme.of(context).textTheme.titleMedium),
+                const SizedBox(height: 8),
+                Text(explanation),
+              ],
+            ),
+          ),
+
 
           const SizedBox(height: 20),
 
           if (tips.isNotEmpty) ...[
-            Text("🛡️ Future-Proof Tips", style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 8),
-            ...tips.map((tip) => ListTile(
-              leading: const Icon(Icons.check_circle_outline, color: Colors.blueAccent),
-              title: Text(tip),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 0),
-            )),
+
+            Container(
+              constraints: const BoxConstraints(maxHeight: 200),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                border: Border.all(color: Colors.grey.shade300),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("🛡️ Future-Proof Tips", style: Theme.of(context).textTheme.titleMedium),
+                  const SizedBox(height: 8),
+                  ...tips.map((tip) => ListTile(
+                    leading: const Icon(Icons.check_circle_outline, color: Colors.blueAccent),
+                    title: Text(tip),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 0),
+                  )),
+                ],
+              ),
+            ),
           ],
 
           const SizedBox(height: 30),

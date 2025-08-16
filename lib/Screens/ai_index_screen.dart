@@ -55,7 +55,7 @@ class _AIIndexScreenState extends State<AIIndexScreen> {
     final collapsed = _isSectionCollapsed(title);
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 30),
+      padding: const EdgeInsets.only(bottom: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
