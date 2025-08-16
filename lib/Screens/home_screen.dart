@@ -57,7 +57,7 @@ class HomePage extends StatelessWidget {
                   icon: Icons.school,
                   onTap: () {
                     Navigator.push(context, MaterialPageRoute(
-                      builder: (_) => const LearnScreen(initialTopic: 'nurse job market in Texas'),
+                      builder: (_) => const LearnScreen(initialTopic: 'General Job Market'),
                     ));
                   },
                 ),

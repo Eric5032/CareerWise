@@ -125,13 +125,6 @@ class _LearnScreenState extends State<LearnScreen> {
             ),
           ),
 
-          if (_loading) const LinearProgressIndicator(),
-
-          if (_error != null)
-            Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: Text(_error!, style: const TextStyle(color: Colors.red)),
-            ),
 
           // Content
           Expanded(
@@ -152,6 +145,22 @@ class _LearnScreenState extends State<LearnScreen> {
                     )
                   else
                     ..._articles.map((a) => _ArticleCard(article: a, onOpen: () => _openUrl(a.url))),
+
+                  if (_loading) Expanded(
+                    child: Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: const CircularProgressIndicator(),
+                      ),
+                    ),
+                  ),
+
+                  if (_error != null)
+                    Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Text(_error!, style: const TextStyle(color: Colors.red)),
+                    ),
+
                 ],
               ),
             ),

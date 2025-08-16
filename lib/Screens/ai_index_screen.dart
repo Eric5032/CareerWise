@@ -15,6 +15,9 @@ class _AIIndexScreenState extends State<AIIndexScreen> {
   bool _isSearching = false;
   String _query = '';
 
+  /// Tracks which section titles are collapsed/disabled.
+  final Set<String> _collapsedSections = <String>{};
+
   void _toggleSearch() {
     setState(() {
       _isSearching = !_isSearching;
@@ -22,6 +25,18 @@ class _AIIndexScreenState extends State<AIIndexScreen> {
       _searchController.clear();
     });
   }
+
+  void _toggleSection(String title) {
+    setState(() {
+      if (_collapsedSections.contains(title)) {
+        _collapsedSections.remove(title);
+      } else {
+        _collapsedSections.add(title);
+      }
+    });
+  }
+
+  bool _isSectionCollapsed(String title) => _collapsedSections.contains(title);
 
   @override
   void dispose() {
@@ -34,36 +49,54 @@ class _AIIndexScreenState extends State<AIIndexScreen> {
         .where((e) => e.key.toLowerCase().contains(_query.toLowerCase()))
         .toList();
 
+    // If search filters everything out, hide the whole section.
     if (entries.isEmpty) return const SizedBox.shrink();
+
+    final collapsed = _isSectionCollapsed(title);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 30),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          // Section header with toggle button
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                ),
+              ),
+              IconButton(
+                tooltip: collapsed ? 'Expand section' : 'Collapse section',
+                onPressed: () => _toggleSection(title),
+                icon: Icon(collapsed ? Icons.expand_more : Icons.expand_less),
+              ),
+            ],
           ),
           const SizedBox(height: 12),
-          SizedBox(
-            height: 230,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: entries.length,
-              separatorBuilder: (context, index) => const SizedBox(width: 12),
-              itemBuilder: (context, index) {
-                final jobTitle = entries[index].key;
-                final imageUrl = entries[index].value;
 
-                return JobsTemplate(
-                  imageUrl: imageUrl,
-                  jobTitle: jobTitle,
-                  onTap: () => _openJobResult(context, jobTitle),
-                );
-              },
+          // Content (hidden when collapsed)
+          if (!collapsed)
+            SizedBox(
+              height: 230,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: entries.length,
+                separatorBuilder: (context, index) => const SizedBox(width: 12),
+                itemBuilder: (context, index) {
+                  final jobTitle = entries[index].key;
+                  final imageUrl = entries[index].value;
+
+                  return JobsTemplate(
+                    imageUrl: imageUrl,
+                    jobTitle: jobTitle,
+                    onTap: () => _openJobResult(context, jobTitle),
+                  );
+                },
+              ),
             ),
-          ),
         ],
       ),
     );
@@ -172,8 +205,8 @@ class JobsTemplate extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 320,
-        height: 160,
+        width: 220,
+        height: 100,
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),

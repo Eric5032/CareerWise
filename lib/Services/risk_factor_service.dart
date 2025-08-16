@@ -15,12 +15,12 @@ class CareerAIService {
     final prompt = '''
 Respond ONLY in raw JSON. For the job "$jobTitle", return a response like:
 
-{
+{       
   "job_title": "Software Engineer",
   "automation_risk_percent": 18,
   "risk_level": "Low",
-  "job_description": "Designs and builds software applications.",
-  "explanation": "Involves creative thinking, problem-solving, and human collaboration.",
+  "job_description": "*paragraph about the job*",
+  "explanation": "*paragraph explaining why that is the ris factor*",
   "future_proof_tips": [
     "Improve communication skills",
     "Stay updated with emerging tech",
