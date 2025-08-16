@@ -93,19 +93,14 @@ class _LearnScreenState extends State<LearnScreen> {
             child: Row(
               children: [
                 Expanded(
-                  child: TextField(
+                  child: SearchBar(
                     controller: _queryCtrl,
                     focusNode: _queryFocus,
-                    decoration: InputDecoration(
-                      hintText: 'Topic (e.g., "software engineer job market in CA")',
-                      border: const OutlineInputBorder(),
-                      isDense: true,
-                      suffixIcon: IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () => _queryCtrl.clear(),
-                        tooltip: 'Clear',
-                      ),
+                    leading: Padding(
+                      padding: const EdgeInsets.all(7.0),
+                      child: Icon(Icons.search),
                     ),
+                    hintText: "Search for a job to learn about",
                     onSubmitted: (v) {
                       final t = v.trim();
                       if (t.isNotEmpty) _fetch(t);

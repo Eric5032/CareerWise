@@ -52,34 +52,58 @@ class _AIIndexScreenState extends State<AIIndexScreen> {
     // If search filters everything out, hide the whole section.
     if (entries.isEmpty) return const SizedBox.shrink();
 
-    final collapsed = _isSectionCollapsed(title);
+    final collapsed = !_isSectionCollapsed(title);
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Section header with toggle button
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  title,
-                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                ),
-              ),
-              IconButton(
-                tooltip: collapsed ? 'Expand section' : 'Collapse section',
-                onPressed: () => _toggleSection(title),
-                icon: Icon(collapsed ? Icons.expand_more : Icons.expand_less),
-              ),
+    return Column(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            boxShadow: const [
+              BoxShadow(
+                  color: Colors.grey,
+                  offset: Offset(0,3),
+                  blurRadius:0.5,
+                  spreadRadius: 0),
             ],
+            color: Colors.grey.shade50,
+            border: Border.all(
+              color: Colors.grey.shade300,
+              width: 2,
+            ),
+            borderRadius: BorderRadius.circular(20),
           ),
-          const SizedBox(height: 12),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Section header with toggle button
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: collapsed ? 'Expand section' : 'Collapse section',
+                      onPressed: () => _toggleSection(title),
+                      icon: Icon(collapsed ? Icons.expand_more : Icons.expand_less),
+                    ),
+                  ],
+                ),
 
-          // Content (hidden when collapsed)
-          if (!collapsed)
-            SizedBox(
+                // Content (hidden when collapsed)
+
+              ],
+            ),
+          ),
+        ),
+        if (!collapsed)
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: SizedBox(
               height: 230,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
@@ -97,9 +121,12 @@ class _AIIndexScreenState extends State<AIIndexScreen> {
                 },
               ),
             ),
-        ],
-      ),
+          ),
+        SizedBox(height: 8,),
+      ],
     );
+
+
   }
 
   Future<void> _openJobResult(BuildContext context, String jobTitle) async {

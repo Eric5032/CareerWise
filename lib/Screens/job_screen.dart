@@ -103,11 +103,13 @@ class _JobPageState extends State<JobPage> {
           const SizedBox(height: 20),
 
           Container(
-            constraints: const BoxConstraints(maxHeight: 200),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
             decoration: BoxDecoration(
               color: Colors.white,
-              border: Border.all(color: Colors.grey.shade300),
+              border: Border.all(
+                  color: Colors.grey.shade300,
+                  width: 2,
+              ),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Column(
@@ -123,11 +125,13 @@ class _JobPageState extends State<JobPage> {
           const SizedBox(height: 20),
 
           Container(
-            constraints: const BoxConstraints(maxHeight: 200),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
             decoration: BoxDecoration(
               color: Colors.white,
-              border: Border.all(color: Colors.grey.shade300),
+              border: Border.all(
+                color: Colors.grey.shade300,
+                width: 2,
+              ),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Column(
@@ -146,11 +150,13 @@ class _JobPageState extends State<JobPage> {
           if (tips.isNotEmpty) ...[
 
             Container(
-              constraints: const BoxConstraints(maxHeight: 200),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal:14, vertical: 16),
               decoration: BoxDecoration(
                 color: Colors.white,
-                border: Border.all(color: Colors.grey.shade300),
+                border: Border.all(
+                  color: Colors.grey.shade300,
+                  width: 2,
+                ),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Column(
