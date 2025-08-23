@@ -1,3 +1,4 @@
+// lib/Screens/job_page.dart
 import 'package:career_guidance/Screens/mentor_screen.dart';
 import 'package:flutter/material.dart';
 import '../data/saved_jobs.dart'; // contains: List<Map<String, dynamic>> savedJobs = [];
@@ -59,7 +60,11 @@ class _JobPageState extends State<JobPage> {
     final riskLevel = jobData['risk_level'] ?? 'Unknown';
     final riskPercent = jobData['automation_risk_percent'] ?? 0;
     final explanation = jobData['explanation'] ?? '';
-    final tips = List<String>.from(jobData['future_proof_tips'] ?? []);
+
+    // 🔹 New: Notable companies (array of {name, website, logo_url})
+    final List<Map<String, dynamic>> companies = List<Map<String, dynamic>>.from(
+      (jobData['notable_companies'] ?? const []),
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -106,10 +111,7 @@ class _JobPageState extends State<JobPage> {
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
             decoration: BoxDecoration(
               color: Colors.white,
-              border: Border.all(
-                  color: Colors.grey.shade300,
-                  width: 2,
-              ),
+              border: Border.all(color: Colors.grey.shade300, width: 2),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Column(
@@ -128,10 +130,7 @@ class _JobPageState extends State<JobPage> {
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
             decoration: BoxDecoration(
               color: Colors.white,
-              border: Border.all(
-                color: Colors.grey.shade300,
-                width: 2,
-              ),
+              border: Border.all(color: Colors.grey.shade300, width: 2),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Column(
@@ -144,31 +143,105 @@ class _JobPageState extends State<JobPage> {
             ),
           ),
 
-
           const SizedBox(height: 20),
 
-          if (tips.isNotEmpty) ...[
+          // 🔹 New: Notable Companies section (only if present)
+          if (companies.isNotEmpty) ...[
+            Card(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              elevation: 3,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("🏢 Notable Companies", style: Theme.of(context).textTheme.titleMedium),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      height: 88,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: companies.length,
+                        separatorBuilder: (_, __) => const SizedBox(width: 12),
+                        itemBuilder: (context, index) {
+                          final company = companies[index];
+                          final name = (company['name'] ?? '').toString();
+                          final logoUrl = (company['logo_url'] ?? '').toString();
 
+                          return Container(
+                            width: 180,
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              border: Border.all(color: Colors.grey.shade300),
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: Row(
+                              children: [
+                                // Circular logo with graceful fallback
+                                ClipOval(
+                                  child: Image.network(
+                                    logoUrl.isNotEmpty ? logoUrl : 'about:blank',
+                                    width: 40,
+                                    height: 40,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, _, __) {
+                                      return Container(
+                                        width: 40,
+                                        height: 40,
+                                        color: Colors.grey.shade200,
+                                        alignment: Alignment.center,
+                                        child: Text(
+                                          name.isNotEmpty ? name[0].toUpperCase() : '?',
+                                          style: const TextStyle(fontWeight: FontWeight.bold),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    name,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(fontWeight: FontWeight.w500),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+          ],
+
+          // Tips
+          if ((jobData['skills_needed'] ?? []).isNotEmpty) ...[
             Container(
-              padding: const EdgeInsets.symmetric(horizontal:14, vertical: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
               decoration: BoxDecoration(
                 color: Colors.white,
-                border: Border.all(
-                  color: Colors.grey.shade300,
-                  width: 2,
-                ),
+                border: Border.all(color: Colors.grey.shade300, width: 2),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("🛡️ Future-Proof Tips", style: Theme.of(context).textTheme.titleMedium),
+                  Text("Skills needed", style: Theme.of(context).textTheme.titleMedium),
                   const SizedBox(height: 8),
-                  ...tips.map((tip) => ListTile(
-                    leading: const Icon(Icons.check_circle_outline, color: Colors.blueAccent),
-                    title: Text(tip),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 0),
-                  )),
+                  ...List<String>.from(jobData['skills_needed']).map(
+                        (skills) => ListTile(
+                      leading: const Icon(Icons.check_circle_outline),
+                      title: Text(skills),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 0),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -176,6 +249,7 @@ class _JobPageState extends State<JobPage> {
 
           const SizedBox(height: 30),
 
+          // Ask the Mentor
           Container(
             constraints: const BoxConstraints(maxHeight: 200),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -192,7 +266,7 @@ class _JobPageState extends State<JobPage> {
                     keyboardType: TextInputType.multiline,
                     textInputAction: TextInputAction.newline,
                     minLines: 1,
-                    maxLines: null, // unlimited but capped by parent
+                    maxLines: null,
                     decoration: const InputDecoration(
                       hintText: "Ask something about this job...",
                       border: InputBorder.none,
@@ -200,14 +274,11 @@ class _JobPageState extends State<JobPage> {
                     ),
                   ),
                 ),
-
-                // 🚀 Submit Button
-
                 Container(
                   height: 40,
                   width: 40,
                   decoration: const BoxDecoration(
-                    shape:  BoxShape.circle,
+                    shape: BoxShape.circle,
                     color: Colors.grey,
                   ),
                   child: IconButton(
@@ -232,10 +303,9 @@ class _JobPageState extends State<JobPage> {
             ),
           ),
 
-
           const SizedBox(height: 16),
 
-          // ✅ Save/Unsave Toggle
+          // Save/Unsave Toggle
           ElevatedButton.icon(
             onPressed: toggleSave,
             icon: Icon(isSaved ? Icons.bookmark_remove : Icons.bookmark_add),
