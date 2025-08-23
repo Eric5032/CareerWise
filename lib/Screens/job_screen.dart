@@ -2,6 +2,7 @@
 import 'package:career_guidance/Screens/mentor_screen.dart';
 import 'package:flutter/material.dart';
 import '../data/saved_jobs.dart'; // contains: List<Map<String, dynamic>> savedJobs = [];
+import 'company_page.dart'; // ⬅️ NEW: import the company page
 
 class JobPage extends StatefulWidget {
   final Map<String, dynamic> jobData;
@@ -61,7 +62,7 @@ class _JobPageState extends State<JobPage> {
     final riskPercent = jobData['automation_risk_percent'] ?? 0;
     final explanation = jobData['explanation'] ?? '';
 
-    // 🔹 New: Notable companies (array of {name, website, logo_url})
+    // 🔹 Notable companies (array of {name, website, logo_url})
     final List<Map<String, dynamic>> companies = List<Map<String, dynamic>>.from(
       (jobData['notable_companies'] ?? const []),
     );
@@ -145,7 +146,7 @@ class _JobPageState extends State<JobPage> {
 
           const SizedBox(height: 20),
 
-          // 🔹 New: Notable Companies section (only if present)
+          // 🔹 Notable Companies section (tappable)
           if (companies.isNotEmpty) ...[
             Card(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -167,8 +168,9 @@ class _JobPageState extends State<JobPage> {
                           final company = companies[index];
                           final name = (company['name'] ?? '').toString();
                           final logoUrl = (company['logo_url'] ?? '').toString();
+                          final website = (company['website'] ?? '').toString();
 
-                          return Container(
+                          final tile = Container(
                             width: 180,
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                             decoration: BoxDecoration(
@@ -211,6 +213,23 @@ class _JobPageState extends State<JobPage> {
                               ],
                             ),
                           );
+
+                          return InkWell(
+                            borderRadius: BorderRadius.circular(14),
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => CompanyPage(
+                                    name: name,
+                                    website: website.isEmpty ? null : website,
+                                    logoUrl: logoUrl.isEmpty ? null : logoUrl,
+                                  ),
+                                ),
+                              );
+                            },
+                            child: tile,
+                          );
                         },
                       ),
                     ),
@@ -221,7 +240,7 @@ class _JobPageState extends State<JobPage> {
             const SizedBox(height: 20),
           ],
 
-          // Tips
+          // Skills
           if ((jobData['skills_needed'] ?? []).isNotEmpty) ...[
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),

@@ -34,15 +34,10 @@ For the job "$jobTitle", return exactly this schema:
   ],
   "notable_companies": [
     {
-      "name": "Google",
-      "website": "google.com",
-      "logo_url": "https://logo.clearbit.com/google.com"
+      "name": "company1",
+      "website": "companywebsite.com",
+      "logo_url": "https://logo.clearbit.com/companylogo.com"
     },
-    {
-      "name": "Microsoft",
-      "website": "microsoft.com",
-      "logo_url": "https://logo.clearbit.com/microsoft.com"
-    }
   ]
 }
 - "automation_risk_percent" must be an integer 0–100.

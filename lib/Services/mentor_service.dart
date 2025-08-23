@@ -16,7 +16,7 @@ class MentorService {
         'Content-Type': 'application/json',
       },
       body: jsonEncode({
-        'model': 'gpt-3.5-turbo',
+        'model': 'gpt-40-mini',
         'messages': [
           {"role": "system", "content": "You are a helpful career mentor."},
           {"role": "user", "content":
