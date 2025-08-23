@@ -79,6 +79,7 @@ class _JobPageState extends State<JobPage> {
         children: [
           // Badge and risk
           Card(
+            color: Colors.blue[50],
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             elevation: 4,
             child: Padding(

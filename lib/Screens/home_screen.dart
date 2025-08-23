@@ -15,7 +15,7 @@ class HomePage extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            "Welcome to CG_App!",
+            "Welcome to Pathwise!",
             style: TextStyle(
               fontSize: 32,
               fontWeight: FontWeight.bold,
