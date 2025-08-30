@@ -1,9 +1,6 @@
 // lib/Screens/company_page.dart
 import 'package:flutter/material.dart';
 import '../Services/mentor_service.dart';
-// Optional: if you want "Open Website" button to launch URLs, add url_launcher to pubspec.yaml
-// dependencies:
-//   url_launcher: ^6.3.0
 import 'package:url_launcher/url_launcher.dart';
 
 class CompanyPage extends StatefulWidget {
@@ -33,12 +30,8 @@ class _CompanyPageState extends State<CompanyPage> {
   }
 
   Future<void> _fetchDescription() async {
-    // You can tweak the prompt to fit your tone/style.
     final prompt = """
 Write exactly two concise paragraphs about "${widget.name}".
-Paragraph 1: What the company does, key products/services, and customer segments.
-Paragraph 2: Market position, scale or traction (if widely known), and recent strategic focus areas.
-No headings, no bullet points, neutral tone.
 """.trim();
 
     try {
@@ -91,35 +84,46 @@ No headings, no bullet points, neutral tone.
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.network(
-                    (widget.logoUrl ?? '').isNotEmpty ? widget.logoUrl! : 'about:blank',
-                    width: 64,
-                    height: 64,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) {
-                      return Container(
-                        width: 64,
-                        height: 64,
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade200,
-                          borderRadius: BorderRadius.circular(12),
+                Container(
+                  width: 70,
+                  height: 70,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.3),
+                        spreadRadius: 1,
+                        blurRadius: 1,
+                        offset: const Offset(2, 2),
+                      ),
+                    ],
+                  ),
+                  child: Stack(
+                    children: [
+                      Positioned.fill(
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(20),
+                            child: Image.network(
+                              (widget.logoUrl ?? '').isNotEmpty
+                                  ? widget.logoUrl!
+                                  : 'about:blank',
+                              fit: BoxFit.cover,
+                            ),
+                          ),
                         ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          widget.name.isNotEmpty ? widget.name[0].toUpperCase() : '?',
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-                        ),
-                      );
-                    },
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     widget.name,
-                    style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+                    style: theme.textTheme.titleLarge
+                        ?.copyWith(fontWeight: FontWeight.w600),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -137,38 +141,43 @@ No headings, no bullet points, neutral tone.
                 ),
               ),
             const SizedBox(height: 8),
-            Row(
-              children: [
-                const SectionContainer(
-                  title: "Date of Establishment",
-                  info: "No notes added yet.",
-                ),
-                SizedBox(width: 15),
-                const SectionContainer(
-                  title: "Company CEO",
-                  info: "No notes added yet.",
-                ),
-              ],
-            ),
-            SizedBox(height: 15),
-            Row(
-              children: [
-                SectionContainer(
-                  title: "Company Description",
-                  info: _description ?? '',
-                )
-              ],
+
+            // ✅ Horizontal scrolling row
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: const [
+                  SectionContainer(
+                    title: "Date of Establishment",
+                    info: "No notes added yet.",
+                  ),
+                  SizedBox(width: 15),
+                  SectionContainer(
+                    title: "Company CEO",
+                    info: "No notes added yet.",
+                  ),
+                  SizedBox(width: 15,),
+                  SectionContainer(
+                    title: "Company Valuation",
+                    info: "No notes added yet.",
+                  ),
+                ],
+              ),
             ),
 
-            SizedBox(height: 15),
+            const SizedBox(height: 15),
 
+            // ✅ Full-width description
+            SectionContainer(
+              title: "Company Description",
+              info: _description ?? '',
+            ),
           ],
         ),
       ),
     );
   }
 }
-
 
 class SectionContainer extends StatelessWidget {
   final String title;
@@ -188,6 +197,8 @@ class SectionContainer extends StatelessWidget {
     final borderRadius = BorderRadius.circular(16);
 
     return Container(
+      margin: EdgeInsets.symmetric(vertical: 4, horizontal: 0 ),
+      constraints: const BoxConstraints(minWidth: 150), // ensures readability
       padding: padding,
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
@@ -198,7 +209,7 @@ class SectionContainer extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            blurRadius: 1,
+            blurRadius: 2,
             spreadRadius: 0,
             offset: const Offset(0, 2),
             color: Colors.black.withOpacity(0.11),
@@ -207,22 +218,23 @@ class SectionContainer extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min, // wrap content
         children: [
           // Section Title
           Text(
             title,
+            softWrap: true,
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w700,
               fontSize: 14,
             ),
           ),
-          const SizedBox(height: 5),
-
           const SizedBox(height: 6),
 
-          // Placeholder
+          // Placeholder / info text
           Text(
             info,
+            softWrap: true,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.onSurface.withOpacity(0.55),
               fontStyle: FontStyle.italic,
