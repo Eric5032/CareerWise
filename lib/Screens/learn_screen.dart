@@ -195,22 +195,28 @@ class _ArticleCard extends StatelessWidget {
               const SizedBox(height: 6),
 
               // Source + recency
-              Row(
-                children: [
-                  Flexible(
-                    child: Text(article.source, style: TextStyle(color: small, fontSize: 12), overflow: TextOverflow.ellipsis),
-                  ),
-                  if (article.recency.isNotEmpty) ...[
-                    const SizedBox(width: 6),
-                    Text('• ${article.recency}', style: TextStyle(color: small, fontSize: 12)),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Row(
+                  children: [
+                    Flexible(
+                      child: Text(article.source, style: TextStyle(color: small, fontSize: 12), overflow: TextOverflow.ellipsis),
+                    ),
+                    if (article.recency.isNotEmpty) ...[
+                      const SizedBox(width: 6),
+                      Text('• ${article.recency}', style: TextStyle(color: small, fontSize: 12)),
+                    ],
                   ],
-                ],
+                ),
               ),
               const SizedBox(height: 8),
 
               // Summary
               if (article.summary.isNotEmpty)
-                Text(article.summary, style: const TextStyle(fontSize: 14)),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Text(article.summary, style: const TextStyle(fontSize: 14)),
+                ),
 
               const SizedBox(height: 8),
               Align(
