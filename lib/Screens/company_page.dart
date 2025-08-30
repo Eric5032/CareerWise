@@ -137,12 +137,98 @@ No headings, no bullet points, neutral tone.
                 ),
               ),
             const SizedBox(height: 8),
-            Text(
-              _description ?? '',
-              style: theme.textTheme.bodyMedium,
+            Row(
+              children: [
+                const SectionContainer(
+                  title: "Date of Establishment",
+                  info: "No notes added yet.",
+                ),
+                SizedBox(width: 15),
+                const SectionContainer(
+                  title: "Company CEO",
+                  info: "No notes added yet.",
+                ),
+              ],
             ),
+            SizedBox(height: 15),
+            Row(
+              children: [
+                SectionContainer(
+                  title: "Company Description",
+                  info: _description ?? '',
+                )
+              ],
+            ),
+
+            SizedBox(height: 15),
+
           ],
         ),
+      ),
+    );
+  }
+}
+
+
+class SectionContainer extends StatelessWidget {
+  final String title;
+  final String info;
+  final EdgeInsetsGeometry padding;
+
+  const SectionContainer({
+    super.key,
+    required this.title,
+    this.info = "Nothing here yet…",
+    this.padding = const EdgeInsets.all(13),
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final borderRadius = BorderRadius.circular(16);
+
+    return Container(
+      padding: padding,
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: borderRadius,
+        border: Border.all(
+          width: 1.5,
+          color: theme.colorScheme.outlineVariant.withOpacity(0.7),
+        ),
+        boxShadow: [
+          BoxShadow(
+            blurRadius: 1,
+            spreadRadius: 0,
+            offset: const Offset(0, 2),
+            color: Colors.black.withOpacity(0.11),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Section Title
+          Text(
+            title,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 5),
+
+          const SizedBox(height: 6),
+
+          // Placeholder
+          Text(
+            info,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurface.withOpacity(0.55),
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+        ],
       ),
     );
   }
