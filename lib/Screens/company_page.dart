@@ -1,7 +1,8 @@
 // lib/Screens/company_page.dart
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import '../Services/mentor_service.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../Services/mentor_service.dart';
 
 class CompanyPage extends StatefulWidget {
   final String name;
@@ -21,34 +22,77 @@ class CompanyPage extends StatefulWidget {
 
 class _CompanyPageState extends State<CompanyPage> {
   String? _description;
+  String? _ceo;
+  String? _founded;
+  String? _worth;
+  String? _worthLabel;
   bool _loading = true;
 
   @override
   void initState() {
     super.initState();
-    _fetchDescription();
+    _fetchCompanyInfo();
   }
 
-  Future<void> _fetchDescription() async {
-    final prompt = """
-Write exactly two concise paragraphs about "${widget.name}".
-""".trim();
+  Future<void> _fetchCompanyInfo() async {
+    final prompt = '''
+Return ONLY compact JSON. Provide structured info about "${widget.name}".
+If unknown, return null for the field.
+
+{
+  "description": "Two short paragraphs. Para 1: what the company does, key products/services, main customer segments. Para 2: market position, scale, and recent strategy. Neutral tone.",
+  "ceo": "Current CEO if known, else null",
+  "founded": "Year or full date if known, else null",
+  "worth": "Company valuation or market cap in human-readable form, else null",
+  "worth_label": "Market Cap or Valuation depending on the type, else Company Worth"
+}
+''';
 
     try {
       final reply = await MentorService().getMentorReply(prompt);
+
+      if (reply != null && reply.trim().isNotEmpty) {
+        final data = _tryParseJson(reply.trim());
+
+        setState(() {
+          _description = data['description'] ?? "Nothing here yet…";
+          _ceo = data['ceo'];
+          _founded = data['founded'];
+          _worth = data['worth'];
+          _worthLabel = data['worth_label'] ?? "Company Worth";
+          _loading = false;
+        });
+      } else {
+        setState(() {
+          _description = "No information available.";
+          _loading = false;
+        });
+      }
+    } catch (e) {
       setState(() {
-        _description = (reply == null || reply.trim().isEmpty)
-            ? " ${widget.name} is a company operating in its sector, offering products and services to its target customers. It focuses on solving practical problems and delivering value through technology, operations, and partnerships.\n\nIn recent years, the company has focused on refining its core offerings, improving user experience, and pursuing sustainable growth opportunities. It continues to iterate on its roadmap and adapt to changing market conditions."
-            : reply.trim();
-        _loading = false;
-      });
-    } catch (_) {
-      setState(() {
-        _description =
-        "${widget.name} is a company offering products and services for its customers.\n\nIt continues to build on its position with a focus on product improvement and responsible growth.";
+        _description = "Failed to load information.";
         _loading = false;
       });
     }
+  }
+
+  /// Proper JSON parsing with fallback
+  Map<String, dynamic> _tryParseJson(String input) {
+    try {
+      // Strip Markdown code fences if model wrapped JSON in ```json ... ```
+      final cleaned = input
+          .replaceAll(RegExp(r'```json', caseSensitive: false), '')
+          .replaceAll('```', '')
+          .trim();
+
+      final decoded = jsonDecode(cleaned);
+      if (decoded is Map<String, dynamic>) {
+        return decoded;
+      }
+    } catch (e) {
+      debugPrint("⚠️ JSON parse failed: $e");
+    }
+    return {};
   }
 
   Future<void> _openWebsite() async {
@@ -81,6 +125,7 @@ Write exactly two concise paragraphs about "${widget.name}".
             ? const Center(child: CircularProgressIndicator())
             : ListView(
           children: [
+            // Header
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -99,38 +144,48 @@ Write exactly two concise paragraphs about "${widget.name}".
                       ),
                     ],
                   ),
-                  child: Stack(
-                    children: [
-                      Positioned.fill(
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(20),
-                            child: Image.network(
-                              (widget.logoUrl ?? '').isNotEmpty
-                                  ? widget.logoUrl!
-                                  : 'about:blank',
-                              fit: BoxFit.cover,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(20),
+                      child: Image.network(
+                        (widget.logoUrl ?? '').isNotEmpty
+                            ? widget.logoUrl!
+                            : 'about:blank',
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) {
+                          return Center(
+                            child: Text(
+                              widget.name.isNotEmpty
+                                  ? widget.name[0].toUpperCase()
+                                  : '?',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 20,
+                              ),
                             ),
-                          ),
-                        ),
+                          );
+                        },
                       ),
-                    ],
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     widget.name,
-                    style: theme.textTheme.titleLarge
-                        ?.copyWith(fontWeight: FontWeight.w600),
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
             ),
+
             const SizedBox(height: 16),
+
             if (widget.website != null && widget.website!.isNotEmpty)
               Align(
                 alignment: Alignment.centerLeft,
@@ -140,26 +195,27 @@ Write exactly two concise paragraphs about "${widget.name}".
                   label: const Text('Open Website'),
                 ),
               ),
+
             const SizedBox(height: 8),
 
-            // ✅ Horizontal scrolling row
+            // Facts row
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
-                children: const [
+                children: [
                   SectionContainer(
                     title: "Date of Establishment",
-                    info: "No notes added yet.",
+                    info: _founded ?? "No notes added yet.",
                   ),
-                  SizedBox(width: 15),
+                  const SizedBox(width: 15),
                   SectionContainer(
                     title: "Company CEO",
-                    info: "No notes added yet.",
+                    info: _ceo ?? "No notes added yet.",
                   ),
-                  SizedBox(width: 15,),
+                  const SizedBox(width: 15),
                   SectionContainer(
-                    title: "Company Valuation",
-                    info: "No notes added yet.",
+                    title: _worthLabel ?? "Company Worth",
+                    info: _worth ?? "No notes added yet.",
                   ),
                 ],
               ),
@@ -167,10 +223,10 @@ Write exactly two concise paragraphs about "${widget.name}".
 
             const SizedBox(height: 15),
 
-            // ✅ Full-width description
             SectionContainer(
               title: "Company Description",
-              info: _description ?? '',
+              info: _description ?? "Nothing here yet…",
+              padding: const EdgeInsets.all(16),
             ),
           ],
         ),
@@ -197,8 +253,8 @@ class SectionContainer extends StatelessWidget {
     final borderRadius = BorderRadius.circular(16);
 
     return Container(
-      margin: EdgeInsets.symmetric(vertical: 4, horizontal: 0 ),
-      constraints: const BoxConstraints(minWidth: 150), // ensures readability
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      constraints: const BoxConstraints(minWidth: 150),
       padding: padding,
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
@@ -218,26 +274,19 @@ class SectionContainer extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min, // wrap content
         children: [
-          // Section Title
           Text(
             title,
-            softWrap: true,
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w700,
               fontSize: 14,
             ),
           ),
           const SizedBox(height: 6),
-
-          // Placeholder / info text
           Text(
             info,
-            softWrap: true,
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurface.withOpacity(0.55),
-              fontStyle: FontStyle.italic,
+              color: theme.colorScheme.onSurface.withOpacity(0.75),
             ),
           ),
         ],
