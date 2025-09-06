@@ -1,8 +1,13 @@
-// lib/Screens/job_page.dart
+import 'package:career_guidance/Theme/theme.dart';
 import 'package:career_guidance/Screens/mentor_screen.dart';
 import 'package:flutter/material.dart';
 import '../data/saved_jobs.dart'; // contains: List<Map<String, dynamic>> savedJobs = [];
 import 'company_page.dart'; // ⬅️ NEW: import the company page
+
+final double SIZEDBOXHEIGHT = 8.0;
+final double SIZEDBOXWIDTH = 10.0;
+const double HPADDING = 14.0;
+const double VPADDING = 14.0;
 
 class JobPage extends StatefulWidget {
   final Map<String, dynamic> jobData;
@@ -55,12 +60,16 @@ class _JobPageState extends State<JobPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final jobData = widget.jobData;
     final title = jobData['job_title'] ?? 'Unknown Job';
     final description = jobData['job_description'] ?? 'No description available.';
     final riskLevel = jobData['risk_level'] ?? 'Unknown';
     final riskPercent = jobData['automation_risk_percent'] ?? 0;
     final explanation = jobData['explanation'] ?? '';
+    final averageSalary = jobData['average_salary'] ?? 0;
+    final jobOutlook = jobData['job_outlook'] ?? '';
+    final String jobOutlookPercentage = jobData['job_outlook_percentage'] ?? '';
 
     // 🔹 Notable companies (array of {name, website, logo_url})
     final List<Map<String, dynamic>> companies = List<Map<String, dynamic>>.from(
@@ -70,7 +79,7 @@ class _JobPageState extends State<JobPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(title),
-        backgroundColor: Colors.white,
+        backgroundColor: kBackgroundLight,
         foregroundColor: Colors.black,
         elevation: 1,
       ),
@@ -94,7 +103,7 @@ class _JobPageState extends State<JobPage> {
                     ),
                     child: Text(
                       riskLevel.toUpperCase(),
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                      style: const TextStyle(color: kBackgroundLight, fontWeight: FontWeight.bold),
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -126,7 +135,7 @@ class _JobPageState extends State<JobPage> {
             ),
           ),
 
-          const SizedBox(height: 20),
+          SizedBox(height: SIZEDBOXHEIGHT),
 
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
@@ -145,7 +154,79 @@ class _JobPageState extends State<JobPage> {
             ),
           ),
 
-          const SizedBox(height: 20),
+          SizedBox(height: SIZEDBOXHEIGHT,),
+
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: HPADDING, vertical: VPADDING),
+                  decoration: BoxDecoration(
+                    color: Colors.lightBlue[50],
+                    border: Border.all(color: Colors.grey.shade300, width: 2),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Annual Pay",
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        "\$${averageSalary.toString()}",
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurface.withOpacity(0.75),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(width: SIZEDBOXWIDTH),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: HPADDING, vertical: VPADDING),
+                  decoration: BoxDecoration(
+                    color: Colors.lightBlue[50],
+                    border: Border.all(color: Colors.grey.shade300, width: 2),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Job Outlook",
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.arrow_outward
+                          ),
+                          Text(
+                            jobOutlookPercentage,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.onSurface.withOpacity(0.75),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 16),
 
           // 🔹 Notable Companies section (tappable)
           if (companies.isNotEmpty) ...[
@@ -175,7 +256,7 @@ class _JobPageState extends State<JobPage> {
                             width: 180,
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: kBackgroundLight,
                               border: Border.all(color: Colors.grey.shade300),
                               borderRadius: BorderRadius.circular(14),
                             ),
@@ -246,7 +327,7 @@ class _JobPageState extends State<JobPage> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
               decoration: BoxDecoration(
-                color: Colors.lightBlue[50],
+                color: kBackgroundLight,
                 border: Border.all(color: Colors.grey.shade300, width: 2),
                 borderRadius: BorderRadius.circular(20),
               ),
@@ -274,7 +355,7 @@ class _JobPageState extends State<JobPage> {
             constraints: const BoxConstraints(maxHeight: 200),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: kBackgroundLight,
               border: Border.all(color: Colors.grey.shade300),
               borderRadius: BorderRadius.circular(20),
             ),
