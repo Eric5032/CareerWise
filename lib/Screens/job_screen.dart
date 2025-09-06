@@ -79,9 +79,9 @@ class _JobPageState extends State<JobPage> {
         children: [
           // Badge and risk
           Card(
-            color: Colors.blue[50],
+            color: Colors.lightBlue[50]!.withValues(alpha: 0.88),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            elevation: 4,
+            elevation: 3,
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Row(
@@ -112,7 +112,7 @@ class _JobPageState extends State<JobPage> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Colors.lightBlue[50],
               border: Border.all(color: Colors.grey.shade300, width: 2),
               borderRadius: BorderRadius.circular(20),
             ),
@@ -131,7 +131,7 @@ class _JobPageState extends State<JobPage> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Colors.lightBlue[50],
               border: Border.all(color: Colors.grey.shade300, width: 2),
               borderRadius: BorderRadius.circular(20),
             ),
@@ -246,7 +246,7 @@ class _JobPageState extends State<JobPage> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Colors.lightBlue[50],
                 border: Border.all(color: Colors.grey.shade300, width: 2),
                 borderRadius: BorderRadius.circular(20),
               ),
