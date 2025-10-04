@@ -1,16 +1,16 @@
-# career_guidance
+# Career Guidance App
 
-A new Flutter project.
+An personal app made for people to explore and learn about different career paths. Some accessible features of the app include the Risk Factor page, the Mentor page, Learn page, and the Saved Jobs page. The app allows the user to learn about jobs in different sectors by displaying a brief description about the job, the risk of automation, and the skills required to succeed. The app also enables the user to ask about different jobs through the AI mentor page and explore recent events and breakthroughs in the job that they are interested in.
 
-## Getting Started
+## Technologies Used
 
-This project is a starting point for a Flutter application.
+This project uses mainly flutter for the UI/UX and OpenAI's GPT models to generate risk factors, responses, and reasoning.
 
-A few resources to get you started if this is your first Flutter project:
+## .env Setup
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+**Important:**  
+You must create an `.env` file in your `assets` directory with your OpenAI API key:
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```
+OPENAI_API_KEY=sk-...
+```
