@@ -1,3 +1,4 @@
+import 'package:career_guidance/Theme/theme.dart';
 import 'package:flutter/material.dart';
 import '../data/temp_jobs.dart';
 import '../Services/risk_factor_service.dart';
@@ -65,7 +66,7 @@ class _AIIndexScreenState extends State<AIIndexScreen> {
                   blurRadius:0.5,
                   spreadRadius: 0),
             ],
-            color: Colors.grey.shade50,
+            color: kBackgroundLight,
             border: Border.all(
               color: Colors.grey.shade300,
               width: 2,
@@ -104,11 +105,12 @@ class _AIIndexScreenState extends State<AIIndexScreen> {
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: SizedBox(
-              height: 230,
+              height: entries.length*77,
               child: ListView.separated(
-                scrollDirection: Axis.horizontal,
+                physics: const NeverScrollableScrollPhysics(),
+                scrollDirection: Axis.vertical,
                 itemCount: entries.length,
-                separatorBuilder: (context, index) => const SizedBox(width: 12),
+                separatorBuilder: (context, index) => const SizedBox(height: 8,),
                 itemBuilder: (context, index) {
                   final jobTitle = entries[index].key;
                   final imageUrl = entries[index].value;
@@ -164,7 +166,7 @@ class _AIIndexScreenState extends State<AIIndexScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Job Sectors'),
-        backgroundColor: Colors.white,
+        backgroundColor: kBannerColor,
         foregroundColor: Colors.black,
         elevation: 1,
         actions: [
@@ -174,7 +176,7 @@ class _AIIndexScreenState extends State<AIIndexScreen> {
           ),
         ],
       ),
-      backgroundColor: const Color(0xFFF2F2F2),
+      backgroundColor: kSurfaceLight,
       body: Column(
         children: [
           if (_isSearching)
@@ -196,15 +198,15 @@ class _AIIndexScreenState extends State<AIIndexScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  buildSection("STEM", tempJobs["STEM"] ?? {}, context),
-                  buildSection("Healthcare", tempJobs["Healthcare"] ?? {}, context),
-                  buildSection("Transportation", tempJobs["Transportation"] ?? {}, context),
+                  buildSection("Information Technology", tempJobs["Information Technology"] ?? {}, context),
+                  buildSection("Healthcare & Medicine", tempJobs["Healthcare & Medicine"] ?? {}, context),
+                  buildSection("Transportation & Logistics", tempJobs["Transportation & Logistics"] ?? {}, context),
                   buildSection("Education", tempJobs["Education"] ?? {}, context),
-                  buildSection("Arts & Design", tempJobs["Arts & Design"] ?? {}, context),
+                  buildSection("Arts, Media & Design", tempJobs["Arts, Media & Design"] ?? {}, context),
                   buildSection("Finance & Business", tempJobs["Finance & Business"] ?? {}, context),
-                  buildSection("Trades & Construction", tempJobs["Trades & Construction"] ?? {}, context),
-                  buildSection("Law & Government", tempJobs["Law & Government"] ?? {}, context),
-                  buildSection("Hospitality", tempJobs["Hospitality"] ?? {}, context),
+                  buildSection("Skilled Trades & Construction", tempJobs["Skilled Trades & Construction"] ?? {}, context),
+                  buildSection("Law, Public Safety & Government", tempJobs["Law, Public Safety & Government"] ?? {}, context),
+                  buildSection("Hospitality & Tourism", tempJobs["Hospitality & Tourism"] ?? {}, context),
                 ],
               ),
             ),
@@ -232,8 +234,8 @@ class JobsTemplate extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 220,
-        height: 100,
+        width: 180,
+        height: 70,
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),

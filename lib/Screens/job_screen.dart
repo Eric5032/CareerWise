@@ -70,6 +70,7 @@ class _JobPageState extends State<JobPage> {
     final averageSalary = jobData['average_salary'] ?? 0;
     final jobOutlook = jobData['job_outlook'] ?? '';
     final String jobOutlookPercentage = jobData['job_outlook_percentage'] ?? '';
+    final String entryLevelEducation = jobData['entry_level_education'] ?? '';
 
     // 🔹 Notable companies (array of {name, website, logo_url})
     final List<Map<String, dynamic>> companies = List<Map<String, dynamic>>.from(
@@ -77,9 +78,10 @@ class _JobPageState extends State<JobPage> {
     );
 
     return Scaffold(
+      backgroundColor: kSurfaceLight,
       appBar: AppBar(
         title: Text(title),
-        backgroundColor: kBackgroundLight,
+        backgroundColor: kBannerColor,
         foregroundColor: Colors.black,
         elevation: 1,
       ),
@@ -88,7 +90,7 @@ class _JobPageState extends State<JobPage> {
         children: [
           // Badge and risk
           Card(
-            color: Colors.lightBlue[50]!.withValues(alpha: 0.88),
+            color: kBackgroundLight,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             elevation: 3,
             child: Padding(
@@ -121,7 +123,7 @@ class _JobPageState extends State<JobPage> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
             decoration: BoxDecoration(
-              color: Colors.lightBlue[50],
+              color: kBackgroundLight,
               border: Border.all(color: Colors.grey.shade300, width: 2),
               borderRadius: BorderRadius.circular(20),
             ),
@@ -140,7 +142,7 @@ class _JobPageState extends State<JobPage> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
             decoration: BoxDecoration(
-              color: Colors.lightBlue[50],
+              color: kBackgroundLight,
               border: Border.all(color: Colors.grey.shade300, width: 2),
               borderRadius: BorderRadius.circular(20),
             ),
@@ -163,7 +165,7 @@ class _JobPageState extends State<JobPage> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: HPADDING, vertical: VPADDING),
                   decoration: BoxDecoration(
-                    color: Colors.lightBlue[50],
+                    color: kBackgroundLight,
                     border: Border.all(color: Colors.grey.shade300, width: 2),
                     borderRadius: BorderRadius.circular(20),
                   ),
@@ -191,7 +193,7 @@ class _JobPageState extends State<JobPage> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: HPADDING, vertical: VPADDING),
                   decoration: BoxDecoration(
-                    color: Colors.lightBlue[50],
+                    color: kBackgroundLight,
                     border: Border.all(color: Colors.grey.shade300, width: 2),
                     borderRadius: BorderRadius.circular(20),
                   ),
@@ -222,6 +224,34 @@ class _JobPageState extends State<JobPage> {
                     ],
                   ),
                 ),
+                SizedBox(width: SIZEDBOXWIDTH,),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: HPADDING, vertical: VPADDING),
+                  decoration: BoxDecoration(
+                    color: kBackgroundLight,
+                    border: Border.all(color: Colors.grey.shade300, width: 2),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Entry Level Education",
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                        Text(
+                          entryLevelEducation,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSurface.withOpacity(0.75),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
@@ -231,6 +261,7 @@ class _JobPageState extends State<JobPage> {
           // 🔹 Notable Companies section (tappable)
           if (companies.isNotEmpty) ...[
             Card(
+              color: kBannerColor,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               elevation: 3,
               child: Padding(

@@ -77,12 +77,13 @@ class _MentorScreenState extends State<MentorScreen> {
                 return Align(
                   alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
                   child: Container(
-                    margin: const EdgeInsets.symmetric(vertical: 4),
+                    margin: const EdgeInsets.symmetric(vertical: 8),
                     padding: const EdgeInsets.all(12),
                     constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
                     decoration: BoxDecoration(
                       color: isUser ? Colors.blueAccent : Colors.grey.shade300,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: isUser ? BorderRadius.only(topLeft: Radius.circular(12), bottomLeft: Radius.circular(12), topRight: Radius.circular(12), bottomRight: Radius.circular(3))
+                          : BorderRadius.only(topLeft: Radius.circular(12), bottomRight: Radius.circular(12), topRight: Radius.circular(12), bottomLeft: Radius.circular(3)),
                     ),
                     child: Text(
                       msg['content'] ?? '',
@@ -97,7 +98,6 @@ class _MentorScreenState extends State<MentorScreen> {
             padding: EdgeInsets.all(8.0),
             child: CircularProgressIndicator(),
           ),
-
           Padding(
             padding: const EdgeInsets.fromLTRB(9.0,9.0, 9.0, 18.0),
             child: Container(

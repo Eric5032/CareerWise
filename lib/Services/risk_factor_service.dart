@@ -42,6 +42,7 @@ For the job "$jobTitle", return exactly this schema:
   "average_salary": 100,000/year 
   "job_outlook": "increasing"
   "job_outlook_percentage": "20%"
+  "entry_level_education": "Bachelor's degree"
 }
 - "automation_risk_percent" must be an integer 0–100.
 - "risk_level" must be "Low", "Medium", or "High".

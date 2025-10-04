@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:career_guidance/Screens/ai_index_screen.dart';
 import 'package:career_guidance/Screens/saved_jobs_list_screen.dart';
 import 'package:career_guidance/Screens/mentor_screen.dart';
@@ -11,6 +12,7 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: kBackgroundLight,
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
