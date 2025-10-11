@@ -48,6 +48,7 @@ For the job "$jobTitle", return exactly this schema:
 - "risk_level" must be "Low", "Medium", or "High".
 - "future_proof_tips" must be a non-empty array of strings.
 - "notable_companies" must be a non-empty array of objects with "name", "website" (domain only), and "logo_url" built as "https://logo.clearbit.com/<website>".
+- "degree_recommendation" must be a array of objects with "degree" that show specific degrees that fit this career, 'logo_url' that shows the cartoon and simple badge that fits the degree(flask for science, Computer for IT, Camera for media, Bitcoin for Finance)
 ''';
 
     final body = jsonEncode({

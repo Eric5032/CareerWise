@@ -25,21 +25,25 @@ class _JobPageState extends State<JobPage> {
   @override
   void initState() {
     super.initState();
-    isSaved = savedJobs.any((job) => job['job_title'] == widget.jobData['job_title']);
+    isSaved = savedJobs.any(
+      (job) => job['job_title'] == widget.jobData['job_title'],
+    );
   }
 
   void toggleSave() {
     setState(() {
       if (isSaved) {
-        savedJobs.removeWhere((job) => job['job_title'] == widget.jobData['job_title']);
+        savedJobs.removeWhere(
+          (job) => job['job_title'] == widget.jobData['job_title'],
+        );
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("❌ Job removed from saved")),
         );
       } else {
         savedJobs.add(widget.jobData);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("✅ Job saved")),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("✅ Job saved")));
       }
       isSaved = !isSaved;
     });
@@ -63,7 +67,8 @@ class _JobPageState extends State<JobPage> {
     final theme = Theme.of(context);
     final jobData = widget.jobData;
     final title = jobData['job_title'] ?? 'Unknown Job';
-    final description = jobData['job_description'] ?? 'No description available.';
+    final description =
+        jobData['job_description'] ?? 'No description available.';
     final riskLevel = jobData['risk_level'] ?? 'Unknown';
     final riskPercent = jobData['automation_risk_percent'] ?? 0;
     final explanation = jobData['explanation'] ?? '';
@@ -73,9 +78,14 @@ class _JobPageState extends State<JobPage> {
     final String entryLevelEducation = jobData['entry_level_education'] ?? '';
 
     // 🔹 Notable companies (array of {name, website, logo_url})
-    final List<Map<String, dynamic>> companies = List<Map<String, dynamic>>.from(
-      (jobData['notable_companies'] ?? const []),
-    );
+    final List<Map<String, dynamic>> companies =
+        List<Map<String, dynamic>>.from(
+          (jobData['notable_companies'] ?? const []),
+        );
+    final List<Map<String, dynamic>> degrees =
+        List<Map<String, dynamic>>.from(
+            (jobData['degree_recommendation'] ?? const [])
+        );
 
     return Scaffold(
       backgroundColor: kSurfaceLight,
@@ -91,27 +101,38 @@ class _JobPageState extends State<JobPage> {
           // Badge and risk
           Card(
             color: kBackgroundLight,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
             elevation: 3,
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       color: getBadgeColor(riskLevel),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
                       riskLevel.toUpperCase(),
-                      style: const TextStyle(color: kBackgroundLight, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                        color: kBackgroundLight,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 16),
                   Text(
                     '$riskPercent% risk of automation',
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ],
               ),
@@ -130,7 +151,10 @@ class _JobPageState extends State<JobPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("📝 Job Description", style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  "📝 Job Description",
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
                 const SizedBox(height: 8),
                 Text(description),
               ],
@@ -149,21 +173,27 @@ class _JobPageState extends State<JobPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("💡 Why is this the risk?", style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  "💡 Why is this the risk?",
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
                 const SizedBox(height: 8),
                 Text(explanation),
               ],
             ),
           ),
 
-          SizedBox(height: SIZEDBOXHEIGHT,),
+          SizedBox(height: SIZEDBOXHEIGHT),
 
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: HPADDING, vertical: VPADDING),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: HPADDING,
+                    vertical: VPADDING,
+                  ),
                   decoration: BoxDecoration(
                     color: kBackgroundLight,
                     border: Border.all(color: Colors.grey.shade300, width: 2),
@@ -191,7 +221,10 @@ class _JobPageState extends State<JobPage> {
                 ),
                 SizedBox(width: SIZEDBOXWIDTH),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: HPADDING, vertical: VPADDING),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: HPADDING,
+                    vertical: VPADDING,
+                  ),
                   decoration: BoxDecoration(
                     color: kBackgroundLight,
                     border: Border.all(color: Colors.grey.shade300, width: 2),
@@ -210,13 +243,13 @@ class _JobPageState extends State<JobPage> {
                       const SizedBox(height: 6),
                       Row(
                         children: [
-                          Icon(
-                            Icons.arrow_outward
-                          ),
+                          Icon(Icons.arrow_outward),
                           Text(
                             jobOutlookPercentage,
                             style: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.colorScheme.onSurface.withOpacity(0.75),
+                              color: theme.colorScheme.onSurface.withOpacity(
+                                0.75,
+                              ),
                             ),
                           ),
                         ],
@@ -224,9 +257,12 @@ class _JobPageState extends State<JobPage> {
                     ],
                   ),
                 ),
-                SizedBox(width: SIZEDBOXWIDTH,),
+                SizedBox(width: SIZEDBOXWIDTH),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: HPADDING, vertical: VPADDING),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: HPADDING,
+                    vertical: VPADDING,
+                  ),
                   decoration: BoxDecoration(
                     color: kBackgroundLight,
                     border: Border.all(color: Colors.grey.shade300, width: 2),
@@ -243,12 +279,12 @@ class _JobPageState extends State<JobPage> {
                         ),
                       ),
                       const SizedBox(height: 6),
-                        Text(
-                          entryLevelEducation,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onSurface.withOpacity(0.75),
-                          ),
+                      Text(
+                        entryLevelEducation,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurface.withOpacity(0.75),
                         ),
+                      ),
                     ],
                   ),
                 ),
@@ -262,14 +298,19 @@ class _JobPageState extends State<JobPage> {
           if (companies.isNotEmpty) ...[
             Card(
               color: kBannerColor,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
               elevation: 3,
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("🏢 Notable Companies", style: Theme.of(context).textTheme.titleMedium),
+                    Text(
+                      "🏢 Notable Companies",
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
                     const SizedBox(height: 12),
                     SizedBox(
                       height: 88,
@@ -280,12 +321,16 @@ class _JobPageState extends State<JobPage> {
                         itemBuilder: (context, index) {
                           final company = companies[index];
                           final name = (company['name'] ?? '').toString();
-                          final logoUrl = (company['logo_url'] ?? '').toString();
+                          final logoUrl = (company['logo_url'] ?? '')
+                              .toString();
                           final website = (company['website'] ?? '').toString();
 
                           final tile = Container(
                             width: 180,
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 10,
+                            ),
                             decoration: BoxDecoration(
                               color: kBackgroundLight,
                               border: Border.all(color: Colors.grey.shade300),
@@ -296,7 +341,9 @@ class _JobPageState extends State<JobPage> {
                                 // Circular logo with graceful fallback
                                 ClipOval(
                                   child: Image.network(
-                                    logoUrl.isNotEmpty ? logoUrl : 'about:blank',
+                                    logoUrl.isNotEmpty
+                                        ? logoUrl
+                                        : 'about:blank',
                                     width: 40,
                                     height: 40,
                                     fit: BoxFit.cover,
@@ -307,8 +354,12 @@ class _JobPageState extends State<JobPage> {
                                         color: Colors.grey.shade200,
                                         alignment: Alignment.center,
                                         child: Text(
-                                          name.isNotEmpty ? name[0].toUpperCase() : '?',
-                                          style: const TextStyle(fontWeight: FontWeight.bold),
+                                          name.isNotEmpty
+                                              ? name[0].toUpperCase()
+                                              : '?',
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                         ),
                                       );
                                     },
@@ -320,7 +371,9 @@ class _JobPageState extends State<JobPage> {
                                     name,
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(fontWeight: FontWeight.w500),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -354,6 +407,117 @@ class _JobPageState extends State<JobPage> {
           ],
 
           // Skills
+          if ((jobData['degree_recommendation'] ?? []).isNotEmpty) ...[
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+              decoration: BoxDecoration(
+                color: kBannerColor,
+                border: Border.all(color: Colors.grey.shade300, width: 2),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.school),
+                      SizedBox(width: 7),
+                      Text(
+                        "Degree Recommendation",
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12,),
+                  SizedBox(
+                    height: 70,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: degrees.length,
+                      separatorBuilder: (_, __) => const SizedBox(width: 12),
+                      itemBuilder: (context, index) {
+                        final degree = degrees[index];
+                        final name = (degree['degree'] ?? '').toString();
+                        final logoUrl = (degree['logo_url'] ?? '').toString();
+
+                        final tile = Container(
+                          width: 180,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 10,
+                          ),
+                          decoration: BoxDecoration(
+                            color: kBackgroundLight,
+                            border: Border.all(color: Colors.grey.shade300),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: Row(
+                            children: [
+                              // Circular logo with graceful fallback
+                              ClipOval(
+                                child: Image.network(
+                                  logoUrl.isNotEmpty ? logoUrl : 'about:blank',
+                                  width: 40,
+                                  height: 40,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, _, __) {
+                                    return Container(
+                                      width: 40,
+                                      height: 40,
+                                      color: Colors.grey.shade200,
+                                      alignment: Alignment.center,
+                                      child: Text(
+                                        name.isNotEmpty
+                                            ? name[0].toUpperCase()
+                                            : '?',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  name,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+
+                        return InkWell(
+                          borderRadius: BorderRadius.circular(14),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => CompanyPage(
+                                  name: name,
+                                  logoUrl: logoUrl.isEmpty ? null : logoUrl,
+                                ),
+                              ),
+                            );
+                          },
+                          child: tile,
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+
+          const SizedBox(height: 30),
+
           if ((jobData['skills_needed'] ?? []).isNotEmpty) ...[
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
@@ -365,10 +529,19 @@ class _JobPageState extends State<JobPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("Skills needed", style: Theme.of(context).textTheme.titleMedium),
+                  Row(
+                    children: [
+                      Icon(Icons.menu_book),
+                      SizedBox(width: 7),
+                      Text(
+                        "Skills Needed",
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 8),
                   ...List<String>.from(jobData['skills_needed']).map(
-                        (skills) => ListTile(
+                    (skills) => ListTile(
                       leading: const Icon(Icons.check_circle_outline),
                       title: Text(skills),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 0),
@@ -402,7 +575,10 @@ class _JobPageState extends State<JobPage> {
                     decoration: const InputDecoration(
                       hintText: "Ask something about this job...",
                       border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 9),
+                      contentPadding: EdgeInsets.symmetric(
+                        vertical: 12,
+                        horizontal: 9,
+                      ),
                     ),
                   ),
                 ),
@@ -424,7 +600,8 @@ class _JobPageState extends State<JobPage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => MentorScreen(initialMessage: text),
+                            builder: (context) =>
+                                MentorScreen(initialMessage: text),
                           ),
                         );
                       }
