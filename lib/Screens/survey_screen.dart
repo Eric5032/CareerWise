@@ -12,9 +12,7 @@ class _SurveyScreenState extends State<SurveyScreen> {
   int _selectedRating = 0;
 
   void _setRating(int rating) {
-    setState(() {
-      _selectedRating = rating;
-    });
+
   }
 
   @override
@@ -24,11 +22,12 @@ class _SurveyScreenState extends State<SurveyScreen> {
       body: Center(
         child: Column(
           children: [
-            ratingScaleCardBuilder("How well do you work in a team?"),
-            ratingScaleCardBuilder("How well do you work in a team?"),
-            ratingScaleCardBuilder("How well do you work in a team?"),
-            ratingScaleCardBuilder("How well do you work in a team?"),
-            ratingScaleCardBuilder("How well do you work in a team?"),
+
+            ratingScaleCardBuilder("How well do you work in a team?", 0),
+            ratingScaleCardBuilder("How well do you work in a team?", 0),
+            ratingScaleCardBuilder("How well do you work in a team?", 0),
+            ratingScaleCardBuilder("How well do you work in a team?", 0),
+            ratingScaleCardBuilder("How well do you work in a team?", 0),
 
           ],
         ),
@@ -36,7 +35,7 @@ class _SurveyScreenState extends State<SurveyScreen> {
     );
   }
 
-  Container ratingScaleCardBuilder(String prompt) {
+  Container ratingScaleCardBuilder(String prompt, int rating) {
     return Container(
       margin: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
       padding: EdgeInsets.symmetric(vertical: 12, horizontal: 12),
@@ -70,7 +69,11 @@ class _SurveyScreenState extends State<SurveyScreen> {
                 final ratingValue = index + 1;
 
                 return GestureDetector(
-                  onTap: () => _setRating(ratingValue),
+                  onTap: (){
+                    setState(() {
+                      _selectedRating = rating;
+                    });
+                  },
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 10.0),
                     child: Column(
@@ -92,7 +95,7 @@ class _SurveyScreenState extends State<SurveyScreen> {
                           child: _selectedRating == ratingValue
                               ? Center(
                             child: Container(
-                              width: 12,
+                              width: 15,
                               height: 12,
                               decoration: const BoxDecoration(
                                 shape: BoxShape.circle,
