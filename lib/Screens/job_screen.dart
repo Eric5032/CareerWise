@@ -621,7 +621,7 @@ class _JobPageState extends State<JobPage> {
             label: Text(isSaved ? "Unsave Job" : "Save Job"),
             style: ElevatedButton.styleFrom(
               backgroundColor: isSaved ? Colors.red : Colors.blueAccent,
-              foregroundColor: Colors.white,
+              foregroundColor: kButtonDark,
               padding: const EdgeInsets.symmetric(vertical: 12),
               textStyle: const TextStyle(fontSize: 16),
             ),

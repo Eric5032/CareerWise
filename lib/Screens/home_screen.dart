@@ -5,6 +5,7 @@ import 'package:career_guidance/Screens/saved_jobs_list_screen.dart';
 import 'package:career_guidance/Screens/mentor_screen.dart';
 import 'package:career_guidance/Theme/theme.dart';
 import 'package:career_guidance/Screens/learn_screen.dart';
+import 'package:career_guidance/Screens/survey_screen.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -71,6 +72,17 @@ class HomePage extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => const SavedJobsScreen()),
+                    );
+                  },
+                ),
+                _buildModuleCard(
+                  context,
+                  title: "Placeholder",
+                  icon: Icons.work,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const SurveyScreen()),
                     );
                   },
                 ),
