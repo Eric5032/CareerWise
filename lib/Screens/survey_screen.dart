@@ -9,13 +9,22 @@ class SurveyScreen extends StatefulWidget {
 }
 
 class _SurveyScreenState extends State<SurveyScreen> {
+  // Ratings (5 questions demo)
   final List<int> _selectedRatings = List<int>.filled(5, 0);
+
+  // Single free-responses (5 questions demo)
   final List<TextEditingController> _controllers = List.generate(
     5,
     (_) => TextEditingController(),
   );
   final List<String> _freeResponses = List.filled(5, '');
-  final List<dynamic> _ExpandableResponses = List.filled(5, List<String>);
+
+  // Expandable free-responses: list of controllers per question
+  // Start each with one text field
+  final List<List<TextEditingController>> _expandedList = List.generate(
+    4,
+    (_) => [TextEditingController()],
+  );
 
   void _setRating(int rating, int qIndex) {
     setState(() {
@@ -29,14 +38,6 @@ class _SurveyScreenState extends State<SurveyScreen> {
   }
 
   @override
-  void dispose() {
-    for (var controller in _controllers) {
-      controller.dispose();
-    }
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Survey')),
@@ -44,34 +45,41 @@ class _SurveyScreenState extends State<SurveyScreen> {
         child: Column(
           children: [
             ratingScaleCardBuilder("How well do you work in a team?", 0),
+
             freeResponseCardBuilder(
               "Describe your ideal work environment.",
               0,
               _controllers[0],
             ),
+
             ratingScaleCardBuilder(
               "You prefer working independently rather than in teams?",
               1,
             ),
+
             freeResponseCardBuilder(
               "What motivates you the most at work?",
               1,
               _controllers[1],
             ),
+
             ratingScaleCardBuilder(
-              "You thrive in fast paced and dynamic work environment?",
-              0,
+              "You thrive in a fast-paced and dynamic work environment?",
+              2,
             ),
-            ExpandableFreeResponseCardBuilder(
+
+            // Expandable: multiple text boxes with Add button
+            expandableFreeResponseCardBuilder(
               "What are your hobbies? Describe your weekly activity and why you are interested.",
-              0,
-              _controllers[2],
+              2,
             ),
           ],
         ),
       ),
     );
   }
+
+  // ───────────────────────── UI Builders ─────────────────────────
 
   Container ratingScaleCardBuilder(String prompt, int qIndex) {
     return Container(
@@ -96,6 +104,7 @@ class _SurveyScreenState extends State<SurveyScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: List.generate(5, (index) {
               final ratingValue = index + 1;
+              final isSelected = _selectedRatings[qIndex] == ratingValue;
               return GestureDetector(
                 onTap: () => _setRating(ratingValue, qIndex),
                 child: Padding(
@@ -109,13 +118,11 @@ class _SurveyScreenState extends State<SurveyScreen> {
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: _selectedRatings[qIndex] == ratingValue
-                                ? Colors.blue
-                                : Colors.grey,
+                            color: isSelected ? Colors.blue : Colors.grey,
                             width: 2,
                           ),
                         ),
-                        child: _selectedRatings[qIndex] == ratingValue
+                        child: isSelected
                             ? const Center(
                                 child: CircleAvatar(
                                   radius: 7,
@@ -151,7 +158,7 @@ class _SurveyScreenState extends State<SurveyScreen> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(14),
         color: kBannerColor,
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(color: Colors.grey, offset: Offset(0, 3), blurRadius: 2),
         ],
       ),
@@ -165,19 +172,17 @@ class _SurveyScreenState extends State<SurveyScreen> {
           const SizedBox(height: 12),
           TextField(
             controller: controller,
-            onChanged: (value) {
-              _setFreeResponse(value, qIndex);
-            },
-            maxLines: null, // Allows multi-line input
+            onChanged: (value) => _setFreeResponse(value, qIndex),
+            maxLines: null,
             decoration: InputDecoration(
               hintText: "Type your answer here...",
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(color: Colors.grey),
+                borderSide: const BorderSide(color: Colors.grey),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(color: Colors.blue),
+                borderSide: const BorderSide(color: Colors.blue),
               ),
               contentPadding: const EdgeInsets.symmetric(
                 vertical: 10,
@@ -190,18 +195,14 @@ class _SurveyScreenState extends State<SurveyScreen> {
     );
   }
 
-  Container ExpandableFreeResponseCardBuilder(
-    String prompt,
-    int qIndex,
-    TextEditingController controller,
-  ) {
+  Container expandableFreeResponseCardBuilder(String prompt, int qIndex) {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(14),
         color: kBannerColor,
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(color: Colors.grey, offset: Offset(0, 3), blurRadius: 2),
         ],
       ),
@@ -213,32 +214,48 @@ class _SurveyScreenState extends State<SurveyScreen> {
             softWrap: true,
             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
           ),
+          const SizedBox(height: 12),
+
+          // Render all current textboxes for this question
+          ...List.generate(_expandedList[qIndex].length, (i) {
+            final c = _expandedList[qIndex][i];
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: i == _expandedList[qIndex].length - 1 ? 0 : 12,
+              ),
+              child: TextField(
+                controller: c,
+                maxLines: null,
+                decoration: InputDecoration(
+                  hintText: "Type your answer here...",
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Colors.grey),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Colors.blue),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 10,
+                    horizontal: 12,
+                  ),
+                ),
+              ),
+            );
+          }),
 
           const SizedBox(height: 12),
-          TextField(
-            controller: controller,
-            onChanged: (value) {
-              _setFreeResponse(value, qIndex);
-            },
-            maxLines: null, // Allows multi-line input
-            decoration: InputDecoration(
-              hintText: "Type your answer here...",
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(color: Colors.grey),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(color: Colors.blue),
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                vertical: 10,
-                horizontal: 12,
-              ),
-            ),
-          ),
           Center(
-            child: TextButton(onPressed: () {}, child: Text("Add")),
+            child: TextButton.icon(
+              onPressed: () {
+                setState(
+                  () => _expandedList[qIndex].add(TextEditingController()),
+                );
+              },
+              icon: const Icon(Icons.add),
+              label: const Text("Add"),
+            ),
           ),
         ],
       ),
