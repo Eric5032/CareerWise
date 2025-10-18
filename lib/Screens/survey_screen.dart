@@ -262,3 +262,13 @@ class _SurveyScreenState extends State<SurveyScreen> {
     );
   }
 }
+
+/**
+ * stuff to add
+ * - add a text at the top of the page describing what the page is for
+ * - "This survey can give you career recommendations based on the feedback received from the survey"
+ * - make everything suitable to pass into a prompt
+ *
+ * - extra text box for "what are you looking forward to in the work place? (rephrase)"
+ * - 5 multiple choice and 5 free reponse
+ */

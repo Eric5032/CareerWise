@@ -77,7 +77,7 @@ class HomePage extends StatelessWidget {
                 ),
                 _buildModuleCard(
                   context,
-                  title: "Placeholder",
+                  title: "Job Survey",
                   icon: Icons.work,
                   onTap: () {
                     Navigator.push(
