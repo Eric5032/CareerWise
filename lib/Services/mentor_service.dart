@@ -21,7 +21,7 @@ class MentorService {
           {"role": "system", "content": "You are a helpful career mentor."},
           {"role": "user", "content":
           "You are a advisor giving job advice about a certain field. make sure answers sound human"
-              "and conversational while being professional. less than 50 words"
+              "and conversational while being professional. less than 60 words"
               + message
           }
         ],

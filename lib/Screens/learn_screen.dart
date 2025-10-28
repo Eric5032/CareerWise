@@ -1,3 +1,4 @@
+import 'package:career_guidance/Theme/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import '../Services/learn_service.dart';
@@ -75,6 +76,7 @@ class _LearnScreenState extends State<LearnScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
+      backgroundColor: kSurfaceLight,
       appBar: AppBar(
         title: const Text('Learn'),
         actions: [
@@ -87,7 +89,6 @@ class _LearnScreenState extends State<LearnScreen> {
       ),
       body: Column(
         children: [
-          // Topic bar
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 12, 12, 6),
             child: Row(
@@ -105,6 +106,12 @@ class _LearnScreenState extends State<LearnScreen> {
                       final t = v.trim();
                       if (t.isNotEmpty) _fetch(t);
                     },
+                    shape: WidgetStateProperty.all(
+                      RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    elevation: WidgetStateProperty.all(2),
+                    backgroundColor: WidgetStateProperty.all(Colors.white),
+
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -145,7 +152,7 @@ class _LearnScreenState extends State<LearnScreen> {
                     child: Center(
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
-                        child: const CircularProgressIndicator(),
+                        child: Center(child: const CircularProgressIndicator()),
                       ),
                     ),
                   ),
@@ -176,9 +183,11 @@ class _ArticleCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final small = Theme.of(context).textTheme.bodySmall?.color;
     return Card(
-      elevation: 1,
+      color: Colors.white,
+      elevation: 2,
       margin: const EdgeInsets.symmetric(vertical: 6),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: onOpen,
@@ -224,7 +233,7 @@ class _ArticleCard extends StatelessWidget {
                 child: TextButton.icon(
                   onPressed: onOpen,
                   icon: const Icon(Icons.open_in_new),
-                  label: const Text('Open'),
+                  label: const Text('Open',)
                 ),
               ),
             ],

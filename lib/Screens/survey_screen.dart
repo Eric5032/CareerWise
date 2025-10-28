@@ -9,18 +9,14 @@ class SurveyScreen extends StatefulWidget {
 }
 
 class _SurveyScreenState extends State<SurveyScreen> {
-  // Ratings (5 questions demo)
-  final List<int> _selectedRatings = List<int>.filled(5, 0);
+  final List<int> _selectedRatings = List<int>.filled(10, 0);
 
-  // Single free-responses (5 questions demo)
   final List<TextEditingController> _controllers = List.generate(
     5,
     (_) => TextEditingController(),
   );
   final List<String> _freeResponses = List.filled(5, '');
 
-  // Expandable free-responses: list of controllers per question
-  // Start each with one text field
   final List<List<TextEditingController>> _expandedList = List.generate(
     4,
     (_) => [TextEditingController()],
@@ -46,12 +42,6 @@ class _SurveyScreenState extends State<SurveyScreen> {
           children: [
             ratingScaleCardBuilder("How well do you work in a team?", 0),
 
-            freeResponseCardBuilder(
-              "Describe your ideal work environment.",
-              0,
-              _controllers[0],
-            ),
-
             ratingScaleCardBuilder(
               "You prefer working independently rather than in teams?",
               1,
@@ -68,6 +58,21 @@ class _SurveyScreenState extends State<SurveyScreen> {
               2,
             ),
 
+            ratingScaleCardBuilder(
+              "You prefer an organized and steady work pace?",
+              3,
+            ),
+
+            ratingScaleCardBuilder(
+              "How easily do you handle change in the workplace?",
+              4,
+            ),
+
+            ratingScaleCardBuilder(
+              "How well do you adapt and learn new skills?",
+              5,
+            ),
+
             // Expandable: multiple text boxes with Add button
             expandableFreeResponseCardBuilder(
               "What are your hobbies? Describe your weekly activity and why you are interested.",
@@ -78,8 +83,6 @@ class _SurveyScreenState extends State<SurveyScreen> {
       ),
     );
   }
-
-  // ───────────────────────── UI Builders ─────────────────────────
 
   Container ratingScaleCardBuilder(String prompt, int qIndex) {
     return Container(

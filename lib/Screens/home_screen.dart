@@ -18,7 +18,7 @@ class HomePage extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            "Welcome to Pathwise!",
+            "Welcome to CareerWise!",
             style: TextStyle(
               fontSize: 32,
               fontWeight: FontWeight.bold,
@@ -75,17 +75,17 @@ class HomePage extends StatelessWidget {
                     );
                   },
                 ),
-                _buildModuleCard(
-                  context,
-                  title: "Job Survey",
-                  icon: Icons.work,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const SurveyScreen()),
-                    );
-                  },
-                ),
+                // _buildModuleCard(
+                //   context,
+                //   title: "Job Survey",
+                //   icon: Icons.work,
+                //   onTap: () {
+                //     Navigator.push(
+                //       context,
+                //       MaterialPageRoute(builder: (context) => const SurveyScreen()),
+                //     );
+                //   },
+                // ),
               ],
             ),
           ),

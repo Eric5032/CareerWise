@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../Services/mentor_service.dart';
+import 'package:career_guidance/Theme/theme.dart';
 
 class CompanyPage extends StatefulWidget {
   final String name;
@@ -27,6 +28,7 @@ class _CompanyPageState extends State<CompanyPage> {
   String? _worth;
   String? _worthLabel;
   bool _loading = true;
+  Map<dynamic, dynamic> _locations = {};
 
   @override
   void initState() {
@@ -44,7 +46,13 @@ If unknown, return null for the field.
   "ceo": "Current CEO if known, else null",
   "founded": "Year or full date if known, else null",
   "worth": "Company valuation or market cap in human-readable form, else null",
-  "worth_label": "Market Cap or Valuation depending on the type, else Company Worth"
+  "worth_label": "Market Cap or Valuation depending on the type, else Company Worth",
+  "job_locations": {
+    "Location 1": "https://www.google.com/maps/place/",
+    "Location 2" : "https://www.google.com/maps/place/",
+    "Location 3" : "https://www.google.com/maps/place/"
+  }
+  -"job_locations" generate specific location of the company's buildings
 }
 ''';
 
@@ -61,6 +69,12 @@ If unknown, return null for the field.
           _worth = data['worth'];
           _worthLabel = data['worth_label'] ?? "Company Worth";
           _loading = false;
+          final locData = data['job_locations'];
+          if (locData is Map) {
+            _locations = locData;
+          } else {
+            _locations = {};
+          }
         });
       } else {
         setState(() {
@@ -76,10 +90,8 @@ If unknown, return null for the field.
     }
   }
 
-  /// Proper JSON parsing with fallback
   Map<String, dynamic> _tryParseJson(String input) {
     try {
-      // Strip Markdown code fences if model wrapped JSON in ```json ... ```
       final cleaned = input
           .replaceAll(RegExp(r'```json', caseSensitive: false), '')
           .replaceAll('```', '')
@@ -90,14 +102,20 @@ If unknown, return null for the field.
         return decoded;
       }
     } catch (e) {
-      debugPrint("⚠️ JSON parse failed: $e");
+      debugPrint("JSON parse failed: $e");
     }
     return {};
   }
 
   Future<void> _openWebsite() async {
     if (widget.website == null || widget.website!.isEmpty) return;
-    final uri = Uri.parse(widget.website!);
+
+    var urlString = widget.website!;
+    if (!urlString.startsWith('http://') && !urlString.startsWith('https://')) {
+      urlString = 'https://$urlString';
+    }
+
+    final uri = Uri.parse(urlString);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else {
@@ -228,6 +246,89 @@ If unknown, return null for the field.
               info: _description ?? "Nothing here yet…",
               padding: const EdgeInsets.all(16),
             ),
+
+            if (_locations.isNotEmpty) ...[
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+                decoration: BoxDecoration(
+                  color: kBannerColor,
+                  border: Border.all(color: Colors.grey.shade300, width: 2),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.location_on_outlined),
+                        const SizedBox(width: 7),
+                        Text(
+                          "Company Locations",
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      height: 70,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: _locations.length,
+                        separatorBuilder: (_, __) => const SizedBox(width: 12),
+                        itemBuilder: (context, index) {
+                          // Since _locations is a Map, convert to a list of entries
+                          final entry = _locations.entries.elementAt(index);
+                          final locationName = entry.key.toString();
+                          final mapUrl = entry.value.toString();
+
+                          return InkWell(
+                            onTap: () async {
+                              final uri = Uri.parse(mapUrl);
+                              if (await canLaunchUrl(uri)) {
+                                await launchUrl(uri, mode: LaunchMode.externalApplication);
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Could not open $locationName')),
+                                );
+                              }
+                            },
+                            borderRadius: BorderRadius.circular(14),
+                            child: Container(
+                              width: 180,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 10,
+                              ),
+                              decoration: BoxDecoration(
+                                color: kBackgroundLight,
+                                border: Border.all(color: Colors.grey.shade300),
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.map_outlined, size: 30),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(
+                                      locationName,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ],
         ),
       ),

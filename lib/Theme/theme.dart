@@ -11,6 +11,8 @@ const Color kBackgroundDark = Color(0xFF121212);
 const Color kSurfaceLight = Color(0xFFF0FFFF);
 const Color kSurfaceDark = Color(0xFF1E1E2C);
 const Color kButtonDark = Color(0xFF1662CC);
+const Color kButtonLight = Color(0xFF4A90E2);
+
 
 final ThemeData lightTheme = ThemeData(
   useMaterial3: true,

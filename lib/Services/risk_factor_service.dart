@@ -25,8 +25,8 @@ For the job "$jobTitle", return exactly this schema:
   "job_title": "Software Engineer",
   "automation_risk_percent": 18,
   "risk_level": "Low",
-  "job_description": "1-2 sentences summarizing the role.",
-  "explanation": "1-2 sentences explaining the risk level.",
+  "job_description": "3-4 sentences summarizing the role.",
+  "explanation": "3-4 sentences explaining the risk level.",
   "skills_needed": [
     "Skill 1",
     "Skill 2",
@@ -35,7 +35,7 @@ For the job "$jobTitle", return exactly this schema:
   "notable_companies": [
     {
       "name": "company1",
-      "website": "companywebsite.com",
+      "website": "https://companywebsite.com",
       "logo_url": "https://logo.clearbit.com/companylogo.com"
     },
   ]
@@ -45,10 +45,14 @@ For the job "$jobTitle", return exactly this schema:
   "entry_level_education": "Bachelor's degree"
 }
 - "automation_risk_percent" must be an integer 0–100.
+- "average_salary" must have comma every 3 digit
+- "job_outlook_percentage" show the projected in the range of 10 years from now
+- "job_outlook" job_outlook_percentage is increasing or decreasing, pick one
 - "risk_level" must be "Low", "Medium", or "High".
-- "future_proof_tips" must be a non-empty array of strings.
+- "future_proof_tips" must be a non-empty array of strings and specific, for example, common languages used for game developer.
 - "notable_companies" must be a non-empty array of objects with "name", "website" (domain only), and "logo_url" built as "https://logo.clearbit.com/<website>".
-- "degree_recommendation" must be a array of objects with "degree" that show specific degrees that fit this career, 'logo_url' that shows the cartoon and simple badge that fits the degree(flask for science, Computer for IT, Camera for media, Bitcoin for Finance)
+- "degree_recommendation" must be a array of objects with "degree" that show specific degrees that fit this career, 'logo_url' that shows the cartoon and simple badge that fits the degree
+(flask for science, Computer for IT, Camera for media, Bitcoin for Finance) built as "https://logo.clearbit.com/<website>".
 ''';
 
     final body = jsonEncode({
@@ -72,21 +76,20 @@ For the job "$jobTitle", return exactly this schema:
       );
 
       if (response.statusCode != 200) {
-        print('❌ OpenAI API error (${response.statusCode}): ${response.body}');
+        print('OpenAI API error (${response.statusCode}): ${response.body}');
         return null;
       }
 
       final responseJson = jsonDecode(response.body);
       final rawContent = responseJson['choices']?[0]?['message']?['content'];
       if (rawContent == null) {
-        print('❌ Missing content in OpenAI response');
+        print('Missing content in OpenAI response');
         return null;
       }
 
       final parsed = _extractJsonFromContent(rawContent);
       if (parsed == null) return null;
 
-      // --- Post-process: ensure each company has a logo_url derived from website ---
       if (parsed['notable_companies'] is List) {
         final List comps = parsed['notable_companies'];
         for (var i = 0; i < comps.length; i++) {
@@ -106,7 +109,6 @@ For the job "$jobTitle", return exactly this schema:
 
       return parsed;
     } catch (e) {
-      print('❌ Request failed: $e');
       return null;
     }
   }
@@ -121,7 +123,6 @@ For the job "$jobTitle", return exactly this schema:
       final jsonStr = content.substring(start, end + 1);
       return json.decode(jsonStr) as Map<String, dynamic>;
     } catch (e) {
-      print('❌ Failed to parse JSON from content: $e\nContent:\n$content');
       return null;
     }
   }

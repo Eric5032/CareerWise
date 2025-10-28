@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:career_guidance/Theme/theme.dart';
 import 'package:flutter/material.dart';
 import '../data/temp_jobs.dart';
@@ -16,7 +18,6 @@ class _AIIndexScreenState extends State<AIIndexScreen> {
   bool _isSearching = false;
   String _query = '';
 
-  /// Tracks which section titles are collapsed/disabled.
   final Set<String> _collapsedSections = <String>{};
 
   void _toggleSearch() {
@@ -45,13 +46,13 @@ class _AIIndexScreenState extends State<AIIndexScreen> {
     super.dispose();
   }
 
-  Widget buildSection(String title, Map<String, String> jobs, BuildContext context) {
-    final entries = jobs.entries
-        .where((e) => e.key.toLowerCase().contains(_query.toLowerCase()))
+  Widget buildSection(String title, List<String> jobs, BuildContext context) {
+
+    final filteredJobs = jobs
+        .where((job) => job.toLowerCase().contains(_query.toLowerCase()))
         .toList();
 
-    // If search filters everything out, hide the whole section.
-    if (entries.isEmpty) return const SizedBox.shrink();
+    if (filteredJobs.isEmpty) return const SizedBox.shrink();
 
     final collapsed = !_isSectionCollapsed(title);
 
@@ -78,7 +79,6 @@ class _AIIndexScreenState extends State<AIIndexScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Section header with toggle button
                 Row(
                   children: [
                     Expanded(
@@ -95,7 +95,6 @@ class _AIIndexScreenState extends State<AIIndexScreen> {
                   ],
                 ),
 
-                // Content (hidden when collapsed)
 
               ],
             ),
@@ -105,18 +104,16 @@ class _AIIndexScreenState extends State<AIIndexScreen> {
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: SizedBox(
-              height: entries.length*77,
+              height: filteredJobs.length*77,
               child: ListView.separated(
                 physics: const NeverScrollableScrollPhysics(),
                 scrollDirection: Axis.vertical,
-                itemCount: entries.length,
+                itemCount: filteredJobs.length,
                 separatorBuilder: (context, index) => const SizedBox(height: 8,),
                 itemBuilder: (context, index) {
-                  final jobTitle = entries[index].key;
-                  final imageUrl = entries[index].value;
+                  final jobTitle = filteredJobs[index];
 
                   return JobsTemplate(
-                    imageUrl: imageUrl,
                     jobTitle: jobTitle,
                     onTap: () => _openJobResult(context, jobTitle),
                   );
@@ -198,15 +195,15 @@ class _AIIndexScreenState extends State<AIIndexScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  buildSection("Information Technology", tempJobs["Information Technology"] ?? {}, context),
-                  buildSection("Healthcare & Medicine", tempJobs["Healthcare & Medicine"] ?? {}, context),
-                  buildSection("Transportation & Logistics", tempJobs["Transportation & Logistics"] ?? {}, context),
-                  buildSection("Education", tempJobs["Education"] ?? {}, context),
-                  buildSection("Arts, Media & Design", tempJobs["Arts, Media & Design"] ?? {}, context),
-                  buildSection("Finance & Business", tempJobs["Finance & Business"] ?? {}, context),
-                  buildSection("Skilled Trades & Construction", tempJobs["Skilled Trades & Construction"] ?? {}, context),
-                  buildSection("Law, Public Safety & Government", tempJobs["Law, Public Safety & Government"] ?? {}, context),
-                  buildSection("Hospitality & Tourism", tempJobs["Hospitality & Tourism"] ?? {}, context),
+                  buildSection("Information Technology", tempJobs["Information Technology"] ?? [], context),
+                  buildSection("Healthcare & Medicine", tempJobs["Healthcare & Medicine"] ?? [], context),
+                  buildSection("Transportation & Logistics", tempJobs["Transportation & Logistics"] ?? [], context),
+                  buildSection("Education", tempJobs["Education"] ?? [], context),
+                  buildSection("Arts, Media & Design", tempJobs["Arts, Media & Design"] ?? [], context),
+                  buildSection("Finance & Business", tempJobs["Finance & Business"] ?? [], context),
+                  buildSection("Skilled Trades & Construction", tempJobs["Skilled Trades & Construction"] ?? [], context),
+                  buildSection("Law, Public Safety & Government", tempJobs["Law, Public Safety & Government"] ?? [], context),
+                  buildSection("Hospitality & Tourism", tempJobs["Hospitality & Tourism"] ?? [], context),
                 ],
               ),
             ),
@@ -218,12 +215,10 @@ class _AIIndexScreenState extends State<AIIndexScreen> {
 }
 
 class JobsTemplate extends StatelessWidget {
-  final String imageUrl;
   final String jobTitle;
   final VoidCallback onTap;
 
   const JobsTemplate({
-    required this.imageUrl,
     required this.jobTitle,
     required this.onTap,
     super.key,
@@ -237,8 +232,8 @@ class JobsTemplate extends StatelessWidget {
         width: 180,
         height: 70,
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
+          color: kPrimaryColor, // the main color
+          borderRadius: BorderRadius.circular(18),
           boxShadow: [
             BoxShadow(
               color: Colors.grey.withOpacity(0.3),
@@ -248,34 +243,16 @@ class JobsTemplate extends StatelessWidget {
             ),
           ],
         ),
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(20),
-                child: Image.network(imageUrl, fit: BoxFit.cover),
-              ),
+        child: Center(
+          child: Text(
+            jobTitle,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
             ),
-            Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  color: Colors.black.withOpacity(0.3),
-                ),
-              ),
-            ),
-            Center(
-              child: Text(
-                jobTitle,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );

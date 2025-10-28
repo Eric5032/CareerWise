@@ -29,7 +29,7 @@ class _SplashScreenState extends State<SplashScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             //Displays Appname
-            Text("CG_App",
+            Text("CareerWise",
               style: TextStyle(
                 fontSize: 40,
                 color: Colors.white,

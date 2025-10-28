@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import '../data/saved_jobs.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'job_screen.dart';
+import '../data/saved_jobs.dart';
 
 class SavedJobsScreen extends StatefulWidget {
   const SavedJobsScreen({super.key});
@@ -11,14 +13,57 @@ class SavedJobsScreen extends StatefulWidget {
 
 class _SavedJobsScreenState extends State<SavedJobsScreen> {
   final TextEditingController _searchController = TextEditingController();
+  final String _jobKey = 'saved_jobs_list';
   List<Map<String, dynamic>> _filteredJobs = [];
   bool _showSearchBar = false;
 
   @override
   void initState() {
     super.initState();
-    _filteredJobs = savedJobs;
+    _initializeJobs();
     _searchController.addListener(_filterJobs);
+  }
+
+  Future<void> _initializeJobs() async {
+    await _loadSavedJobs();
+    setState(() {
+      _filteredJobs = List.from(savedJobs);
+    });
+  }
+
+  Future<void> _loadSavedJobs() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonString = prefs.getString(_jobKey);
+      if (jsonString != null && jsonString.isNotEmpty) {
+        final List decoded = jsonDecode(jsonString);
+        savedJobs = decoded.cast<Map<String, dynamic>>();
+        _filteredJobs = savedJobs;
+      } else {
+        savedJobs = [];
+      }
+    } catch (e) {
+      debugPrint('Failed to load saved jobs: $e');
+      savedJobs = [];
+    }
+  }
+
+  Future<void> _saveJobs() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_jobKey, jsonEncode(savedJobs));
+      debugPrint('${savedJobs.length} jobs to SharedPreferences.');
+    } catch (e) {
+      debugPrint('Failed to save jobs: $e');
+    }
+  }
+
+  Future<void> _removeJob(Map<String, dynamic> job) async {
+    setState(() {
+      savedJobs.removeWhere((j) => j['job_title'] == job['job_title']);
+      _filteredJobs = List.from(savedJobs);
+    });
+    await _saveJobs();
   }
 
   void _filterJobs() {
@@ -36,7 +81,7 @@ class _SavedJobsScreenState extends State<SavedJobsScreen> {
       _showSearchBar = !_showSearchBar;
       if (!_showSearchBar) {
         _searchController.clear();
-        _filteredJobs = savedJobs;
+        _filteredJobs = List.from(savedJobs);
       }
     });
   }
@@ -71,28 +116,34 @@ class _SavedJobsScreenState extends State<SavedJobsScreen> {
                 decoration: InputDecoration(
                   hintText: "Search saved jobs...",
                   prefixIcon: const Icon(Icons.search),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
               ),
             ),
           Expanded(
             child: isEmpty
-                ? const Center(child: Text("No saved jobs match your search."))
+                ? const Center(child: Text("No saved jobs found."))
                 : ListView.builder(
               itemCount: _filteredJobs.length,
               itemBuilder: (context, index) {
                 final job = _filteredJobs[index];
                 return ListTile(
                   title: Text(job['job_title'] ?? 'Untitled'),
-                  subtitle: Text("${job['automation_risk_percent']}% risk"),
-                  trailing: const Icon(Icons.arrow_forward),
+                  subtitle: Text(
+                      "${job['automation_risk_percent'] ?? '?'}% risk"),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.delete),
+                    onPressed: () => _removeJob(job),
+                  ),
                   onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (_) => JobPage(jobData: job),
                       ),
-                    );
+                    ).then((_) => _initializeJobs()); // refresh on return
                   },
                 );
               },

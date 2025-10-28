@@ -1,8 +1,10 @@
+import 'dart:convert';
 import 'package:career_guidance/Theme/theme.dart';
 import 'package:career_guidance/Screens/mentor_screen.dart';
 import 'package:flutter/material.dart';
-import '../data/saved_jobs.dart'; // contains: List<Map<String, dynamic>> savedJobs = [];
-import 'company_page.dart'; // ⬅️ NEW: import the company page
+import '../data/saved_jobs.dart';
+import 'company_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 final double SIZEDBOXHEIGHT = 8.0;
 final double SIZEDBOXWIDTH = 10.0;
@@ -30,7 +32,17 @@ class _JobPageState extends State<JobPage> {
     );
   }
 
-  void toggleSave() {
+  Future<void> _persistSavedJobs() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('saved_jobs_list', jsonEncode(savedJobs));
+      debugPrint('Job list persisted: ${savedJobs.length} jobs');
+    } catch (e) {
+      debugPrint('Failed to persist jobs: $e');
+    }
+  }
+
+  void toggleSave() async{
     setState(() {
       if (isSaved) {
         savedJobs.removeWhere(
@@ -47,6 +59,7 @@ class _JobPageState extends State<JobPage> {
       }
       isSaved = !isSaved;
     });
+    await _persistSavedJobs();
   }
 
   Color getBadgeColor(String riskLevel) {
@@ -243,7 +256,13 @@ class _JobPageState extends State<JobPage> {
                       const SizedBox(height: 6),
                       Row(
                         children: [
-                          Icon(Icons.arrow_outward),
+                          Image.asset(
+                            jobOutlook == "increasing" ?
+                            'assets/icons/increase.png' : 'assets/icons/decrease.png',
+                            width: 20,
+                            height: 20,
+                          ),
+                          SizedBox(width: 3,),
                           Text(
                             jobOutlookPercentage,
                             style: theme.textTheme.bodyMedium?.copyWith(
@@ -294,7 +313,6 @@ class _JobPageState extends State<JobPage> {
 
           const SizedBox(height: 16),
 
-          // 🔹 Notable Companies section (tappable)
           if (companies.isNotEmpty) ...[
             Card(
               color: kBannerColor,
@@ -440,7 +458,7 @@ class _JobPageState extends State<JobPage> {
                         final name = (degree['degree'] ?? '').toString();
                         final logoUrl = (degree['logo_url'] ?? '').toString();
 
-                        final tile = Container(
+                        return Container(
                           width: 180,
                           padding: const EdgeInsets.symmetric(
                             horizontal: 12,
@@ -453,7 +471,6 @@ class _JobPageState extends State<JobPage> {
                           ),
                           child: Row(
                             children: [
-                              // Circular logo with graceful fallback
                               ClipOval(
                                 child: Image.network(
                                   logoUrl.isNotEmpty ? logoUrl : 'about:blank',
@@ -491,22 +508,6 @@ class _JobPageState extends State<JobPage> {
                               ),
                             ],
                           ),
-                        );
-
-                        return InkWell(
-                          borderRadius: BorderRadius.circular(14),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => CompanyPage(
-                                  name: name,
-                                  logoUrl: logoUrl.isEmpty ? null : logoUrl,
-                                ),
-                              ),
-                            );
-                          },
-                          child: tile,
                         );
                       },
                     ),
@@ -554,7 +555,6 @@ class _JobPageState extends State<JobPage> {
 
           const SizedBox(height: 30),
 
-          // Ask the Mentor
           Container(
             constraints: const BoxConstraints(maxHeight: 200),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -614,7 +614,6 @@ class _JobPageState extends State<JobPage> {
 
           const SizedBox(height: 16),
 
-          // Save/Unsave Toggle
           ElevatedButton.icon(
             onPressed: toggleSave,
             icon: Icon(isSaved ? Icons.bookmark_remove : Icons.bookmark_add),
