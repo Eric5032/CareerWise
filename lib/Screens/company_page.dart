@@ -47,13 +47,13 @@ If unknown, return null for the field.
   "founded": "Year or full date if known, else null",
   "worth": "Company valuation or market cap in human-readable form, else null",
   "worth_label": "Market Cap or Valuation depending on the type, else Company Worth",
-  "job_locations": {
-    "Location 1": "https://www.google.com/maps/place/",
-    "Location 2" : "https://www.google.com/maps/place/",
-    "Location 3" : "https://www.google.com/maps/place/"
-  }
-  -"job_locations" generate specific location of the company's buildings
-}
+  "job_locations": {}
+  
+  Generate 3 to 5 realistic job_locations for "${widget.name}".  
+- Each key: the location name (city + office type if possible).  
+- Each value: a fully functional Google Maps **search URL**, like:
+  "https://www.google.com/maps/search/?api=1&query=<location>". 
+- Ensure the JSON is valid, no extra text.
 ''';
 
     try {
