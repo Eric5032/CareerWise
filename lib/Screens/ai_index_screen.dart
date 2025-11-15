@@ -20,6 +20,32 @@ class _AIIndexScreenState extends State<AIIndexScreen> {
 
   final Set<String> _collapsedSections = <String>{};
 
+  // Category icons mapping
+  final Map<String, IconData> _categoryIcons = {
+    "Information Technology": Icons.computer,
+    "Healthcare & Medicine": Icons.medical_services,
+    "Transportation & Logistics": Icons.local_shipping,
+    "Education": Icons.school,
+    "Arts, Media & Design": Icons.palette,
+    "Finance & Business": Icons.business_center,
+    "Skilled Trades & Construction": Icons.construction,
+    "Law, Public Safety & Government": Icons.gavel,
+    "Hospitality & Tourism": Icons.hotel,
+  };
+
+  // Category colors mapping
+  final Map<String, Color> _categoryColors = {
+    "Information Technology": Colors.blue.shade700,
+    "Healthcare & Medicine": Colors.red.shade600,
+    "Transportation & Logistics": Colors.orange.shade700,
+    "Education": Colors.green.shade700,
+    "Arts, Media & Design": Colors.purple.shade600,
+    "Finance & Business": Colors.teal.shade700,
+    "Skilled Trades & Construction": Colors.brown.shade600,
+    "Law, Public Safety & Government": Colors.indigo.shade700,
+    "Hospitality & Tourism": Colors.pink.shade600,
+  };
+
   void _toggleSearch() {
     setState(() {
       _isSearching = !_isSearching;
@@ -47,92 +73,167 @@ class _AIIndexScreenState extends State<AIIndexScreen> {
   }
 
   Widget buildSection(String title, List<String> jobs, BuildContext context) {
-
     final filteredJobs = jobs
         .where((job) => job.toLowerCase().contains(_query.toLowerCase()))
         .toList();
 
     if (filteredJobs.isEmpty) return const SizedBox.shrink();
 
-    final collapsed = !_isSectionCollapsed(title);
+    final collapsed = _isSectionCollapsed(title);
+    final categoryColor = _categoryColors[title] ?? Colors.blue.shade700;
+    final categoryIcon = _categoryIcons[title] ?? Icons.work;
 
-    return Column(
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            boxShadow: const [
-              BoxShadow(
-                  color: Colors.grey,
-                  offset: Offset(0,3),
-                  blurRadius:0.5,
-                  spreadRadius: 0),
+    return Card(
+      margin: const EdgeInsets.only(bottom: 16),
+      elevation: 3,
+      shadowColor: categoryColor.withOpacity(0.3),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          gradient: LinearGradient(
+            colors: [
+              categoryColor.withOpacity(0.05),
+              Colors.white,
             ],
-            color: kBackgroundLight,
-            border: Border.all(
-              color: Colors.grey.shade300,
-              width: 2,
-            ),
-            borderRadius: BorderRadius.circular(20),
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+        ),
+        child: Column(
+          children: [
+            // Header Section
+            InkWell(
+              onTap: () => _toggleSection(title),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(
+                      color: collapsed ? Colors.transparent : categoryColor.withOpacity(0.2),
+                      width: 1,
+                    ),
+                  ),
+                ),
+                child: Row(
                   children: [
-                    Expanded(
-                      child: Text(
-                        title,
-                        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                    // Icon with colored background
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: categoryColor.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        categoryIcon,
+                        color: categoryColor,
+                        size: 28,
                       ),
                     ),
-                    IconButton(
-                      tooltip: collapsed ? 'Expand section' : 'Collapse section',
-                      onPressed: () => _toggleSection(title),
-                      icon: Icon(collapsed ? Icons.expand_more : Icons.expand_less),
+                    const SizedBox(width: 16),
+                    // Title and job count
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey.shade800,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${filteredJobs.length} ${filteredJobs.length == 1 ? 'job' : 'jobs'}',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey.shade600,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Expand/Collapse button
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: categoryColor.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        collapsed ? Icons.keyboard_arrow_down : Icons.keyboard_arrow_up,
+                        color: categoryColor,
+                        size: 24,
+                      ),
                     ),
                   ],
                 ),
-
-
-              ],
-            ),
-          ),
-        ),
-        if (!collapsed)
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: SizedBox(
-              height: filteredJobs.length*77,
-              child: ListView.separated(
-                physics: const NeverScrollableScrollPhysics(),
-                scrollDirection: Axis.vertical,
-                itemCount: filteredJobs.length,
-                separatorBuilder: (context, index) => const SizedBox(height: 8,),
-                itemBuilder: (context, index) {
-                  final jobTitle = filteredJobs[index];
-
-                  return JobsTemplate(
-                    jobTitle: jobTitle,
-                    onTap: () => _openJobResult(context, jobTitle),
-                  );
-                },
               ),
             ),
-          ),
-        SizedBox(height: 8,),
-      ],
+            // Jobs List
+            AnimatedCrossFade(
+              firstChild: const SizedBox.shrink(),
+              secondChild: Padding(
+                padding: const EdgeInsets.all(16),
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: filteredJobs.length,
+                  separatorBuilder: (context, index) => const SizedBox(height: 12),
+                  itemBuilder: (context, index) {
+                    final jobTitle = filteredJobs[index];
+                    return JobsTemplate(
+                      jobTitle: jobTitle,
+                      categoryColor: categoryColor,
+                      onTap: () => _openJobResult(context, jobTitle),
+                    );
+                  },
+                ),
+              ),
+              crossFadeState: collapsed
+                  ? CrossFadeState.showFirst
+                  : CrossFadeState.showSecond,
+              duration: const Duration(milliseconds: 300),
+            ),
+          ],
+        ),
+      ),
     );
-
-
   }
 
   Future<void> _openJobResult(BuildContext context, String jobTitle) async {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => const Center(child: CircularProgressIndicator()),
+      builder: (_) => Center(
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: const Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text(
+                'Loading job details...',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
 
     try {
@@ -147,13 +248,39 @@ class _AIIndexScreenState extends State<AIIndexScreen> {
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to get job data.')),
+          SnackBar(
+            content: const Row(
+              children: [
+                Icon(Icons.error_outline, color: Colors.white),
+                SizedBox(width: 12),
+                Text('Failed to get job data.'),
+              ],
+            ),
+            backgroundColor: Colors.red.shade600,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
         );
       }
     } catch (e) {
       if (context.mounted) Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.error_outline, color: Colors.white),
+              const SizedBox(width: 12),
+              Expanded(child: Text('Error: $e')),
+            ],
+          ),
+          backgroundColor: Colors.red.shade600,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
       );
     }
   }
@@ -162,39 +289,104 @@ class _AIIndexScreenState extends State<AIIndexScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Job Sectors'),
-        backgroundColor: kBannerColor,
+        title: Text(
+          'Explore Career Paths',
+          style: TextStyle(
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+            color: Colors.grey.shade800,
+          ),
+        ),
+        backgroundColor: kSurfaceLight,
         foregroundColor: Colors.black,
-        elevation: 1,
+        elevation: 0,
         actions: [
           IconButton(
             icon: Icon(_isSearching ? Icons.close : Icons.search),
             onPressed: _toggleSearch,
+            tooltip: _isSearching ? 'Close search' : 'Search jobs',
           ),
         ],
       ),
       backgroundColor: kSurfaceLight,
       body: Column(
         children: [
-          if (_isSearching)
-            Padding(
-              padding: const EdgeInsets.all(12.0),
+          // Search Bar with animation
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            height: _isSearching ? 80 : 0,
+            child: _isSearching
+                ? Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: kBannerColor,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
               child: TextField(
                 controller: _searchController,
+                autofocus: true,
                 onChanged: (value) => setState(() => _query = value),
                 decoration: InputDecoration(
-                  hintText: "Search jobs...",
-                  prefixIcon: const Icon(Icons.search),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  hintText: "Search for jobs...",
+                  prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                  suffixIcon: _query.isNotEmpty
+                      ? IconButton(
+                    icon: const Icon(Icons.clear, color: Colors.grey),
+                    onPressed: () {
+                      setState(() {
+                        _query = '';
+                        _searchController.clear();
+                      });
+                    },
+                  )
+                      : null,
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
                 ),
               ),
-            ),
+            )
+                : const SizedBox.shrink(),
+          ),
+          // Main Content
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Header with stats
+                  if (_query.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 8),
+                          Text(
+                            'Discover AI automation risks across different sectors',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  // Job Sections
                   buildSection("Information Technology", tempJobs["Information Technology"] ?? [], context),
                   buildSection("Healthcare & Medicine", tempJobs["Healthcare & Medicine"] ?? [], context),
                   buildSection("Transportation & Logistics", tempJobs["Transportation & Logistics"] ?? [], context),
@@ -204,6 +396,7 @@ class _AIIndexScreenState extends State<AIIndexScreen> {
                   buildSection("Skilled Trades & Construction", tempJobs["Skilled Trades & Construction"] ?? [], context),
                   buildSection("Law, Public Safety & Government", tempJobs["Law, Public Safety & Government"] ?? [], context),
                   buildSection("Hospitality & Tourism", tempJobs["Hospitality & Tourism"] ?? [], context),
+                  const SizedBox(height: 20),
                 ],
               ),
             ),
@@ -216,41 +409,72 @@ class _AIIndexScreenState extends State<AIIndexScreen> {
 
 class JobsTemplate extends StatelessWidget {
   final String jobTitle;
+  final Color categoryColor;
   final VoidCallback onTap;
 
   const JobsTemplate({
     required this.jobTitle,
+    required this.categoryColor,
     required this.onTap,
     super.key,
   });
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 180,
-        height: 70,
-        decoration: BoxDecoration(
-          color: kPrimaryColor, // the main color
-          borderRadius: BorderRadius.circular(18),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.3),
-              spreadRadius: 1,
-              blurRadius: 6,
-              offset: const Offset(0, 2),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Ink(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                categoryColor,
+                categoryColor.withOpacity(0.8),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
-          ],
-        ),
-        child: Center(
-          child: Text(
-            jobTitle,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: categoryColor.withOpacity(0.3),
+                spreadRadius: 0,
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    jobTitle,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.arrow_forward_ios,
+                    color: Colors.white,
+                    size: 16,
+                  ),
+                ),
+              ],
             ),
           ),
         ),

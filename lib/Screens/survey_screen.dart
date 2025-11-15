@@ -35,50 +35,55 @@ class _SurveyScreenState extends State<SurveyScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Survey')),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            ratingScaleCardBuilder("How well do you work in a team?", 0),
+    return GestureDetector(
+      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+      child: Scaffold(
+        appBar: AppBar(title: const Text('Survey')),
+        body: SafeArea(
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                ratingScaleCardBuilder("How well do you work in a team?", 0),
 
-            ratingScaleCardBuilder(
-              "You prefer working independently rather than in teams?",
-              1,
-            ),
+                ratingScaleCardBuilder(
+                  "You prefer working independently rather than in teams?",
+                  1,
+                ),
 
-            freeResponseCardBuilder(
-              "What motivates you the most at work?",
-              1,
-              _controllers[1],
-            ),
+                freeResponseCardBuilder(
+                  "What motivates you the most at work?",
+                  1,
+                  _controllers[1],
+                ),
 
-            ratingScaleCardBuilder(
-              "You thrive in a fast-paced and dynamic work environment?",
-              2,
-            ),
+                ratingScaleCardBuilder(
+                  "You thrive in a fast-paced and dynamic work environment?",
+                  2,
+                ),
 
-            ratingScaleCardBuilder(
-              "You prefer an organized and steady work pace?",
-              3,
-            ),
+                ratingScaleCardBuilder(
+                  "You prefer an organized and steady work pace?",
+                  3,
+                ),
 
-            ratingScaleCardBuilder(
-              "How easily do you handle change in the workplace?",
-              4,
-            ),
+                ratingScaleCardBuilder(
+                  "How easily do you handle change in the workplace?",
+                  4,
+                ),
 
-            ratingScaleCardBuilder(
-              "How well do you adapt and learn new skills?",
-              5,
-            ),
+                ratingScaleCardBuilder(
+                  "How well do you adapt and learn new skills?",
+                  5,
+                ),
 
-            // Expandable: multiple text boxes with Add button
-            expandableFreeResponseCardBuilder(
-              "What are your hobbies? Describe your weekly activity and why you are interested.",
-              2,
+                // Expandable: multiple text boxes with Add button
+                expandableFreeResponseCardBuilder(
+                  "What are your hobbies? Describe your weekly activity and why you are interested.",
+                  2,
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

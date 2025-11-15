@@ -15,11 +15,13 @@ class MentorScreen extends StatefulWidget {
   State<MentorScreen> createState() => _MentorScreenState();
 }
 
-class _MentorScreenState extends State<MentorScreen> {
+class _MentorScreenState extends State<MentorScreen> with SingleTickerProviderStateMixin {
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final List<Map<String, String>> _messages = [];
   bool _isLoading = false;
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
 
   String get _chatKey => 'mentor_chat_history${widget.historyId != null ? "_${widget.historyId}" : ""}';
 
@@ -27,6 +29,18 @@ class _MentorScreenState extends State<MentorScreen> {
   void initState() {
     super.initState();
     _loadChatHistory();
+
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
+
+    _fadeAnimation = CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    );
+
+    _animationController.forward();
 
     if (widget.initialMessage != null && widget.initialMessage!.trim().isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -166,6 +180,7 @@ class _MentorScreenState extends State<MentorScreen> {
   void dispose() {
     _controller.dispose();
     _scrollController.dispose();
+    _animationController.dispose();
     super.dispose();
   }
 
@@ -174,127 +189,288 @@ class _MentorScreenState extends State<MentorScreen> {
     return Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 8),
-        padding: const EdgeInsets.all(12),
+        margin: const EdgeInsets.symmetric(vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
         decoration: BoxDecoration(
-          color: isUser ? Colors.blueAccent : Colors.grey.shade300,
+          gradient: isUser
+              ? LinearGradient(
+            colors: [Colors.lightBlue.shade600, Colors.lightBlue.shade700],
+          )
+              : LinearGradient(
+            colors: [Colors.grey.shade100, Colors.grey.shade50],
+          ),
           borderRadius: isUser
               ? const BorderRadius.only(
-            topLeft: Radius.circular(12),
-            bottomLeft: Radius.circular(12),
-            topRight: Radius.circular(12),
-            bottomRight: Radius.circular(3),
+            topLeft: Radius.circular(20),
+            bottomLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+            bottomRight: Radius.circular(4),
           )
               : const BorderRadius.only(
-            topLeft: Radius.circular(12),
-            bottomRight: Radius.circular(12),
-            topRight: Radius.circular(12),
-            bottomLeft: Radius.circular(3),
+            topLeft: Radius.circular(20),
+            bottomRight: Radius.circular(20),
+            topRight: Radius.circular(20),
+            bottomLeft: Radius.circular(4),
           ),
+          boxShadow: [
+            BoxShadow(
+              color: (isUser ? Colors.lightBlue : Colors.grey).withOpacity(0.15),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Text(
           msg['content'] ?? '',
-          style: TextStyle(color: isUser ? Colors.white : Colors.black87),
+          style: TextStyle(
+            color: isUser ? Colors.white : Colors.grey.shade800,
+            fontSize: 15,
+            height: 1.5,
+          ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.lightBlue.shade50, Colors.lightBlue.shade100],
+              ),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.chat_bubble_outline,
+              size: 64,
+              color: Colors.lightBlue.shade700,
+            ),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            "Start a Conversation",
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey.shade800,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 48),
+            child: Text(
+              "Ask anything about your career path, job prospects, or any questions you have!",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 15,
+                color: Colors.grey.shade600,
+                height: 1.5,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: kSurfaceLight,
-      appBar: AppBar(
-        title: const Text("Mentor Chat"),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.bug_report_outlined),
-            tooltip: "Print saved JSON (debug)",
-            onPressed: () => printSavedRaw(),
+    return GestureDetector(
+      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+      child: Scaffold(
+        backgroundColor: kSurfaceLight,
+        appBar: AppBar(
+          title: const Text(
+            "Mentor Chat",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+            ),
           ),
-          IconButton(
-            icon: const Icon(Icons.delete_outline),
-            tooltip: "Clear chat",
-            onPressed: _isLoading
-                ? null
-                : () async {
-              final confirm = await showDialog<bool>(
-                context: context,
-                builder: (_) => AlertDialog(
-                  title: const Text("Clear chat?"),
-                  content: const Text("This will delete your chat history."),
-                  actions: [
-                    TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("Cancel")),
-                    TextButton(onPressed: () => Navigator.pop(context, true), child: const Text("Clear")),
-                  ],
+          backgroundColor: kSurfaceLight,
+          foregroundColor: Colors.black,
+          elevation: 0,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.bug_report_outlined),
+              tooltip: "Print saved JSON (debug)",
+              onPressed: () => printSavedRaw(),
+            ),
+            IconButton(
+              icon: const Icon(Icons.delete_outline),
+              tooltip: "Clear chat",
+              onPressed: _isLoading
+                  ? null
+                  : () async {
+                final confirm = await showDialog<bool>(
+                  context: context,
+                  builder: (_) => AlertDialog(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    title: const Text(
+                      "Clear chat?",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    content: const Text(
+                      "This will delete your chat history permanently.",
+                      style: TextStyle(height: 1.5),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: Text(
+                          "Cancel",
+                          style: TextStyle(color: Colors.grey.shade600),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        child: Text(
+                          "Clear",
+                          style: TextStyle(
+                            color: Colors.red.shade600,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+                if (confirm == true) await _clearChat();
+              },
+            ),
+          ],
+        ),
+        body: FadeTransition(
+          opacity: _fadeAnimation,
+          child: SafeArea(
+            child: Column(
+              children: [
+                Expanded(
+                  child: _messages.isEmpty
+                      ? _buildEmptyState()
+                      : ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    itemCount: _messages.length,
+                    itemBuilder: (context, index) => _buildMessageBubble(_messages[index]),
+                  ),
                 ),
-              );
-              if (confirm == true) await _clearChat();
-            },
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.all(12),
-              itemCount: _messages.length,
-              itemBuilder: (context, index) => _buildMessageBubble(_messages[index]),
-            ),
-          ),
-          if (_isLoading)
-            const Padding(
-              padding: EdgeInsets.all(8.0),
-              child: CircularProgressIndicator(),
-            ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(9.0, 9.0, 9.0, 18.0),
-            child: Container(
-              constraints: const BoxConstraints(maxHeight: 200),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border.all(color: Colors.grey.shade300),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _controller,
-                      keyboardType: TextInputType.multiline,
-                      textInputAction: TextInputAction.newline,
-                      minLines: 1,
-                      maxLines: null,
-                      enabled: !_isLoading,
-                      decoration: const InputDecoration(
-                        hintText: "Ask something about this job...",
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 9),
+                if (_isLoading)
+                  Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.lightBlue.shade600),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          "Thinking...",
+                          style: TextStyle(
+                            color: Colors.grey.shade600,
+                            fontSize: 14,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16.0, 12.0, 16.0, 20.0),
+                  child: Card(
+                    elevation: 3,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Container(
+                      constraints: const BoxConstraints(maxHeight: 200),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.lightBlue.shade50,
+                            Colors.white,
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: _controller,
+                              keyboardType: TextInputType.multiline,
+                              textInputAction: TextInputAction.newline,
+                              minLines: 1,
+                              maxLines: null,
+                              enabled: !_isLoading,
+                              style: TextStyle(
+                                fontSize: 15,
+                                color: Colors.grey.shade800,
+                              ),
+                              decoration: InputDecoration(
+                                hintText: "Ask something about this job...",
+                                hintStyle: TextStyle(color: Colors.grey.shade500),
+                                border: InputBorder.none,
+                                contentPadding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                  horizontal: 12,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            height: 48,
+                            width: 48,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: _isLoading
+                                    ? [Colors.grey.shade300, Colors.grey.shade400]
+                                    : [Colors.lightBlue.shade600, Colors.lightBlue.shade700],
+                              ),
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                if (!_isLoading)
+                                  BoxShadow(
+                                    color: Colors.lightBlue.withOpacity(0.3),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 3),
+                                  ),
+                              ],
+                            ),
+                            child: IconButton(
+                              icon: const Icon(Icons.send_rounded),
+                              color: Colors.white,
+                              iconSize: 20,
+                              onPressed: _isLoading ? null : _sendMessage,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                  Container(
-                    height: 40,
-                    width: 40,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: _isLoading ? Colors.grey.shade400 : Colors.blueAccent,
-                    ),
-                    child: IconButton(
-                      icon: const Icon(Icons.send),
-                      color: Colors.white,
-                      onPressed: _isLoading ? null : _sendMessage,
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }
