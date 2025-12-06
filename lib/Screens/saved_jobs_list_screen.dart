@@ -256,7 +256,7 @@ class _SavedJobsScreenState extends State<SavedJobsScreen> {
                         borderRadius: BorderRadius.circular(16),
                         gradient: LinearGradient(
                           colors: [
-                            Colors.lightBlue.shade50,
+                            Colors.lightBlue.shade200.withAlpha(40),
                             Colors.white,
                           ],
                           begin: Alignment.topLeft,

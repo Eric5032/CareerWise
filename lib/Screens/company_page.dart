@@ -57,7 +57,7 @@ If unknown, return null for the field.
 ''';
 
     try {
-      final reply = await MentorService().getMentorReply(prompt);
+      final reply = await MentorService().getMentorReply("", prompt);
 
       if (reply != null && reply.trim().isNotEmpty) {
         final data = _tryParseJson(reply.trim());

@@ -6,7 +6,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 class MentorService {
   final String _apiKey = dotenv.env['OPENAI_API_KEY'] ?? '';
 
-  Future<String?> getMentorReply(String message) async {
+  Future<String?> getMentorReply(String jobName, String message) async {
     const url = 'https://api.openai.com/v1/chat/completions';
 
     final response = await http.post(
@@ -20,9 +20,9 @@ class MentorService {
         'messages': [
           {"role": "system", "content": "You are a helpful career mentor."},
           {"role": "user", "content":
-          "You are a advisor giving job advice about a certain field. make sure answers sound human"
-              "and conversational while being professional. less than 60 words"
-              + message
+          """""You are a advisor giving job advice about ${jobName.isEmpty ? "a certain field" : jobName}. make sure answers sound human
+              and conversational while being professional. less than 60 words
+              + $message"""
           }
         ],
         'temperature': 0.5,

@@ -289,17 +289,21 @@ class _AIIndexScreenState extends State<AIIndexScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Explore Career Paths',
-          style: TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
-            color: Colors.grey.shade800,
-          ),
-        ),
         backgroundColor: kSurfaceLight,
         foregroundColor: Colors.black,
         elevation: 0,
+        title: Column(
+          children: [
+            Text(
+              'Explore Career Paths',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey.shade800,
+              ),
+            ),
+          ],
+        ),
         actions: [
           IconButton(
             icon: Icon(_isSearching ? Icons.close : Icons.search),

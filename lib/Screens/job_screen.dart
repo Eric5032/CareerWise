@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../data/saved_jobs.dart';
 import 'company_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:fl_chart/fl_chart.dart';
 
 class JobPage extends StatefulWidget {
   final Map<String, dynamic> jobData;
@@ -327,7 +328,7 @@ class _JobPageState extends State<JobPage> with SingleTickerProviderStateMixin {
                 ],
 
                 // Ask Question Box
-                _buildAskQuestionBox(),
+                _buildAskQuestionBox(title),
 
                 const SizedBox(height: 20),
 
@@ -889,7 +890,7 @@ class _JobPageState extends State<JobPage> with SingleTickerProviderStateMixin {
     );
   }
 
-  Widget _buildAskQuestionBox() {
+  Widget _buildAskQuestionBox(String? title) {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(
@@ -965,7 +966,7 @@ class _JobPageState extends State<JobPage> with SingleTickerProviderStateMixin {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => MentorScreen(initialMessage: text),
+                        builder: (context) => MentorScreen(jobName: title, initialMessage: text),
                       ),
                     );
                   }

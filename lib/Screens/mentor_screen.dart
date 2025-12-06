@@ -1,4 +1,3 @@
-// lib/Screens/mentor_screen.dart
 import 'dart:convert';
 import 'package:career_guidance/Theme/theme.dart';
 import 'package:flutter/material.dart';
@@ -6,10 +5,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../Services/mentor_service.dart';
 
 class MentorScreen extends StatefulWidget {
+  final String? jobName;
   final String? initialMessage;
   final String? historyId;
 
-  const MentorScreen({super.key, this.initialMessage, this.historyId});
+  const MentorScreen({super.key, this.jobName, this.initialMessage, this.historyId});
 
   @override
   State<MentorScreen> createState() => _MentorScreenState();
@@ -28,13 +28,10 @@ class _MentorScreenState extends State<MentorScreen> with SingleTickerProviderSt
   @override
   void initState() {
     super.initState();
-    _loadChatHistory();
-
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 600),
       vsync: this,
     );
-
     _fadeAnimation = CurvedAnimation(
       parent: _animationController,
       curve: Curves.easeInOut,
@@ -43,9 +40,10 @@ class _MentorScreenState extends State<MentorScreen> with SingleTickerProviderSt
     _animationController.forward();
 
     if (widget.initialMessage != null && widget.initialMessage!.trim().isNotEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _sendMessageFromInit(widget.initialMessage!.trim());
-      });
+      print(" THIS IS THE INITIAL MESSAGE: ${widget.initialMessage}");
+      _sendMessageFromInit(widget.jobName!, widget.initialMessage!.trim());
+    } else {
+      _loadChatHistory();
     }
   }
 
@@ -96,15 +94,16 @@ class _MentorScreenState extends State<MentorScreen> with SingleTickerProviderSt
     }
   }
 
-  Future<void> _sendMessageFromInit(String text) async {
+  Future<void> _sendMessageFromInit(String jobName, String text) async {
+    print("THIS IS THE TEXT INSIDE SENDMESS FROM INIT: $text");
+    await _loadChatHistory();
     setState(() {
       _messages.add({'role': 'user', 'content': text});
       _isLoading = true;
     });
-    await _saveChatHistory();
     _scrollToBottom();
 
-    final reply = await MentorService().getMentorReply(text);
+    final reply = await MentorService().getMentorReply(jobName, text);
 
     setState(() {
       if (reply != null) {
@@ -115,6 +114,7 @@ class _MentorScreenState extends State<MentorScreen> with SingleTickerProviderSt
       _isLoading = false;
     });
     await _saveChatHistory();
+    await _loadChatHistory();
     _scrollToBottom();
   }
 
@@ -130,7 +130,7 @@ class _MentorScreenState extends State<MentorScreen> with SingleTickerProviderSt
     await _saveChatHistory();
     _scrollToBottom();
 
-    final reply = await MentorService().getMentorReply(text);
+    final reply = await MentorService().getMentorReply("", text);
 
     setState(() {
       if (reply != null) {
@@ -168,12 +168,6 @@ class _MentorScreenState extends State<MentorScreen> with SingleTickerProviderSt
       } catch (e) {
       }
     });
-  }
-
-  Future<void> printSavedRaw() async {
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(_chatKey);
-    debugPrint('[MentorScreen] raw saved ($_chatKey): $raw');
   }
 
   @override
@@ -286,22 +280,19 @@ class _MentorScreenState extends State<MentorScreen> with SingleTickerProviderSt
       child: Scaffold(
         backgroundColor: kSurfaceLight,
         appBar: AppBar(
-          title: const Text(
-            "Mentor Chat",
+          title: Text(
+            "Mentor",
             style: TextStyle(
+              fontSize: 28,
               fontWeight: FontWeight.bold,
-              fontSize: 20,
+              color: Colors.grey.shade800,
             ),
           ),
           backgroundColor: kSurfaceLight,
           foregroundColor: Colors.black,
           elevation: 0,
           actions: [
-            IconButton(
-              icon: const Icon(Icons.bug_report_outlined),
-              tooltip: "Print saved JSON (debug)",
-              onPressed: () => printSavedRaw(),
-            ),
+
             IconButton(
               icon: const Icon(Icons.delete_outline),
               tooltip: "Clear chat",

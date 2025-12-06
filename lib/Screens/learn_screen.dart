@@ -66,19 +66,40 @@ class _LearnScreenState extends State<LearnScreen> {
     } else {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not open link')),
+        SnackBar(
+          content: const Row(
+            children: [
+              Icon(Icons.error_outline, color: Colors.white),
+              SizedBox(width: 12),
+              Text('Could not open link'),
+            ],
+          ),
+          backgroundColor: Colors.red.shade600,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
       backgroundColor: kSurfaceLight,
       appBar: AppBar(
-        title: const Text('Learn'),
+        backgroundColor: kSurfaceLight,
+        foregroundColor: Colors.black,
+        elevation: 0,
+        title: Text(
+          'Learn',
+          style: TextStyle(
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+            color: Colors.grey.shade800,
+          ),
+        ),
         actions: [
           IconButton(
             tooltip: 'Refresh',
@@ -89,81 +110,182 @@ class _LearnScreenState extends State<LearnScreen> {
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 12, 12, 6),
-            child: Row(
-              children: [
-                Expanded(
-                  child: SearchBar(
-                    controller: _queryCtrl,
-                    focusNode: _queryFocus,
-                    leading: Padding(
-                      padding: const EdgeInsets.all(7.0),
-                      child: Icon(Icons.search),
-                    ),
-                    hintText: "Search for a job to learn about",
-                    onSubmitted: (v) {
-                      final t = v.trim();
-                      if (t.isNotEmpty) _fetch(t);
-                    },
-                    shape: WidgetStateProperty.all(
-                      RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    ),
-                    elevation: WidgetStateProperty.all(2),
-                    backgroundColor: WidgetStateProperty.all(Colors.white),
-
-                  ),
+          // Search Section
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: kBannerColor,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
                 ),
-                const SizedBox(width: 8),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    final t = _queryCtrl.text.trim();
-                    if (t.isNotEmpty) _fetch(t);
-                  },
-                  icon: const Icon(Icons.search),
-                  label: const Text('Go'),
-                )
               ],
             ),
+            child: TextField(
+              controller: _queryCtrl,
+              focusNode: _queryFocus,
+              onSubmitted: (v) {
+                final t = v.trim();
+                if (t.isNotEmpty) _fetch(t);
+              },
+              decoration: InputDecoration(
+                hintText: "Search for a job to learn about",
+                prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                suffixIcon: _queryCtrl.text.isNotEmpty
+                    ? IconButton(
+                  icon: const Icon(Icons.clear, color: Colors.grey),
+                  onPressed: () {
+                    setState(() {
+                      _queryCtrl.clear();
+                    });
+                  },
+                )
+                    : null,
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+              ),
+            ),
           ),
-
 
           // Content
           Expanded(
             child: RefreshIndicator(
               onRefresh: () async => _fetch(_queryCtrl.text.trim()),
-              child: ListView(
+              child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(12, 8, 12, 16),
-                children: [
-
-                  Text('Articles', style: theme.textTheme.titleMedium),
-                  const SizedBox(height: 8),
-
-                  if (_articles.isEmpty && !_loading && _error == null)
-                    Text(
-                      'No articles yet. Try another topic.',
-                      style: TextStyle(color: Colors.grey.shade700),
-                    )
-                  else
-                    ..._articles.map((a) => _ArticleCard(article: a, onOpen: () => _openUrl(a.url))),
-
-                  if (_loading) Expanded(
-                    child: Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Center(child: const CircularProgressIndicator()),
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header
+                    if (!_loading && _error == null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 8),
+                            Text(
+                              'Discover articles and insights about "${_queryCtrl.text.trim()}"',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ),
 
-                  if (_error != null)
-                    Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: Text(_error!, style: const TextStyle(color: Colors.red)),
-                    ),
+                    // Loading State
+                    if (_loading)
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(40.0),
+                          child: Column(
+                            children: [
+                              const CircularProgressIndicator(),
+                              const SizedBox(height: 16),
+                              Text(
+                                'Loading articles...',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.grey.shade600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
 
-                ],
+                    // Error State
+                    if (_error != null)
+                      Card(
+                        margin: const EdgeInsets.only(bottom: 16),
+                        elevation: 3,
+                        shadowColor: Colors.red.withOpacity(0.3),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.red.shade50,
+                                Colors.white,
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.error_outline, color: Colors.red.shade600, size: 28),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  _error!,
+                                  style: TextStyle(
+                                    color: Colors.red.shade700,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                    // Articles List
+                    if (_articles.isEmpty && !_loading && _error == null)
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(40.0),
+                          child: Column(
+                            children: [
+                              Icon(Icons.article_outlined, size: 64, color: Colors.grey.shade400),
+                              const SizedBox(height: 16),
+                              Text(
+                                'No articles yet. Try another topic.',
+                                style: TextStyle(
+                                  color: Colors.grey.shade600,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    else
+                      ListView.separated(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: _articles.length,
+                        separatorBuilder: (context, index) => const SizedBox(height: 16),
+                        itemBuilder: (context, index) {
+                          return _ArticleCard(
+                            article: _articles[index],
+                            onOpen: () => _openUrl(_articles[index].url),
+                            index: index,
+                          );
+                        },
+                      ),
+
+                    const SizedBox(height: 20),
+                  ],
+                ),
               ),
             ),
           ),
@@ -174,70 +296,195 @@ class _LearnScreenState extends State<LearnScreen> {
 }
 
 class _ArticleCard extends StatelessWidget {
-  const _ArticleCard({required this.article, required this.onOpen});
+  const _ArticleCard({
+    required this.article,
+    required this.onOpen,
+    required this.index,
+  });
 
   final LearnArticle article;
   final VoidCallback onOpen;
+  final int index;
+
+  // Color palette for articles
+  static final List<Color> _colors = [
+    Colors.blue.shade600,
+  ];
+
+  Color get _cardColor => _colors[index % _colors.length];
 
   @override
   Widget build(BuildContext context) {
-    final small = Theme.of(context).textTheme.bodySmall?.color;
     return Card(
-      color: Colors.white,
-      elevation: 2,
-      margin: const EdgeInsets.symmetric(vertical: 6),
+      elevation: 3,
+      shadowColor: _cardColor.withOpacity(0.3),
       shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: onOpen,
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Title
-              Text(
-                article.title.isEmpty ? 'Untitled' : article.title,
-                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
-              ),
-              const SizedBox(height: 6),
-
-              // Source + recency
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Row(
-                  children: [
-                    Flexible(
-                      child: Text(article.source, style: TextStyle(color: small, fontSize: 12), overflow: TextOverflow.ellipsis),
-                    ),
-                    if (article.recency.isNotEmpty) ...[
-                      const SizedBox(width: 6),
-                      Text('• ${article.recency}', style: TextStyle(color: small, fontSize: 12)),
-                    ],
-                  ],
-                ),
-              ),
-              const SizedBox(height: 8),
-
-              // Summary
-              if (article.summary.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: Text(article.summary, style: const TextStyle(fontSize: 14)),
-                ),
-
-              const SizedBox(height: 8),
-              Align(
-                alignment: Alignment.bottomRight,
-                child: TextButton.icon(
-                  onPressed: onOpen,
-                  icon: const Icon(Icons.open_in_new),
-                  label: const Text('Open',)
-                ),
-              ),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          gradient: LinearGradient(
+            colors: [
+              _cardColor.withOpacity(0.05),
+              Colors.white,
             ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
+        ),
+        child: Column(
+          children: [
+            // Header with icon
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(
+                    color: _cardColor.withOpacity(0.2),
+                    width: 1,
+                  ),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: _cardColor.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      Icons.article,
+                      color: _cardColor,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          article.title.isEmpty ? 'Untitled' : article.title,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                            color: Colors.grey.shade800,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                article.source,
+                                style: TextStyle(
+                                  color: Colors.grey.shade600,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            if (article.recency.isNotEmpty) ...[
+                              const SizedBox(width: 6),
+                              Text(
+                                '• ${article.recency}',
+                                style: TextStyle(
+                                  color: Colors.grey.shade600,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Summary
+            if (article.summary.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  article.summary,
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: Colors.grey.shade700,
+                    height: 1.5,
+                  ),
+                ),
+              ),
+
+            // Action button
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: onOpen,
+                  borderRadius: BorderRadius.circular(16),
+                  child: Ink(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          _cardColor,
+                          _cardColor.withOpacity(0.8),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: _cardColor.withOpacity(0.3),
+                          spreadRadius: 0,
+                          blurRadius: 8,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text(
+                            'Read Article',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.arrow_forward_ios,
+                              color: Colors.white,
+                              size: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
