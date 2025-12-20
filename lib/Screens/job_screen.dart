@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import '../data/saved_jobs.dart';
 import 'company_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:fl_chart/fl_chart.dart';
 
 class JobPage extends StatefulWidget {
   final Map<String, dynamic> jobData;

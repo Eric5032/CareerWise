@@ -12,6 +12,8 @@ const Color kSurfaceLight = Color(0xFFF0FFFF);
 const Color kSurfaceDark = Color(0xFF1E1E2C);
 const Color kButtonDark = Color(0xFF1662CC);
 const Color kButtonLight = Color(0xFF4A90E2);
+const Color kTextFormFill = Color(0xFF8f8e8e);
+
 
 
 final ThemeData lightTheme = ThemeData(
