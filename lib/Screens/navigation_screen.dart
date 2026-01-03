@@ -6,6 +6,7 @@ import '../Screens/learn_screen.dart';
 import '../Screens/mentor_screen.dart';
 import '../Screens/saved_jobs_list_screen.dart';
 import "../Screens/profile_screen.dart";
+import '../Screens/soft_skills_screen.dart';
 import '../Theme/theme.dart';
 
 class NavigationScreen extends StatefulWidget {
@@ -22,6 +23,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
     MentorScreen(),
     LearnScreen(initialTopic: 'General Job Market'),
     SavedJobsScreen(),
+    SoftSkillsScreen(),
     ProfileScreen(),
   ];
 

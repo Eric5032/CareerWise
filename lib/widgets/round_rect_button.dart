@@ -37,9 +37,9 @@ class RoundRectButton extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                if (buttonIcon == null)
+                if (buttonIcon != null)
                 Icon(buttonIcon, color: Colors.white, size: 24),
-                if (buttonIcon == null)
+                if (buttonIcon != null)
                 const SizedBox(width: 12),
                 Text(
                   buttonText,
