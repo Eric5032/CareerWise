@@ -683,7 +683,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     ),
                                   ),
                                   child: Text(
-                                    'Cancel',
+                                    'Cancelll',
                                     style: TextStyle(color: Colors.grey.shade600),
                                   ),
                                 ),
