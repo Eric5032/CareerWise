@@ -414,7 +414,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         foregroundColor: Colors.black,
         elevation: 0,
         title: Text(
-          'Profile 2',
+          'Profile',
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -683,7 +683,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     ),
                                   ),
                                   child: Text(
-                                    'Cancelll',
+                                    'Cancel',
                                     style: TextStyle(color: Colors.grey.shade600),
                                   ),
                                 ),
