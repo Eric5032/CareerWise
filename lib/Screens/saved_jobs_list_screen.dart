@@ -427,179 +427,203 @@ class _SavedJobsScreenState extends State<SavedJobsScreen> {
                             }
                           }
 
-                          return Card(
-                            elevation: isSelected ? 4 : 2,
-                            margin: const EdgeInsets.only(bottom: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                              side: isSelected
-                                  ? BorderSide(
-                                color: Colors.blue.shade700,
-                                width: 2,
-                              )
-                                  : BorderSide.none,
-                            ),
-                            child: InkWell(
-                              borderRadius: BorderRadius.circular(16),
-                              onTap: () {
-                                if (_isMultiSelectMode) {
-                                  _toggleJobSelection(jobId);
-                                } else {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => JobPage(jobData: job),
-                                    ),
-                                  );
-                                }
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(16),
-                                  gradient: LinearGradient(
-                                    colors: isSelected
-                                        ? [
-                                      Colors.blue.shade100.withAlpha(100),
-                                      Colors.blue.shade50.withAlpha(50),
-                                    ]
-                                        : [
-                                      Colors.lightBlue.shade200.withAlpha(70),
-                                      Colors.lightBlue.shade400.withAlpha(70),
-                                      Colors.lightBlue.shade200.withAlpha(70)
-                                    ],
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
+                          return Dismissible(
+                            key: Key(jobId),
+                            direction: _isMultiSelectMode
+                                ? DismissDirection.none
+                                : DismissDirection.endToStart,
+                            confirmDismiss: (direction) async {
+                              final confirm = await showDialog<bool>(
+                                context: context,
+                                builder: (_) => AlertDialog(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20),
                                   ),
+                                  title: const Text(
+                                    "Remove job?",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  content: Text(
+                                    "Are you sure you want to remove \"$jobTitle\" from saved jobs?",
+                                    style: const TextStyle(height: 1.5),
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context, false),
+                                      child: Text(
+                                        "Cancel",
+                                        style: TextStyle(
+                                          color: Colors.grey.shade600,
+                                        ),
+                                      ),
+                                    ),
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context, true),
+                                      child: Text(
+                                        "Remove",
+                                        style: TextStyle(
+                                          color: Colors.red.shade600,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                child: Row(
-                                  children: [
-                                    if (_isMultiSelectMode)
-                                      Padding(
-                                        padding: const EdgeInsets.only(right: 12),
-                                        child: Container(
-                                          width: 24,
-                                          height: 24,
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            border: Border.all(
+                              );
+                              return confirm ?? false;
+                            },
+                            onDismissed: (direction) {
+                              _removeJob(jobId, jobTitle);
+                            },
+                            background: Container(
+                              margin: const EdgeInsets.only(bottom: 12),
+                              decoration: BoxDecoration(
+                                color: Colors.red.shade400,
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              alignment: Alignment.centerRight,
+                              padding: const EdgeInsets.only(right: 20),
+                              child: const Icon(
+                                Icons.delete_outline,
+                                color: Colors.white,
+                                size: 28,
+                              ),
+                            ),
+                            child: Card(
+                              elevation: isSelected ? 4 : 2,
+                              margin: const EdgeInsets.only(bottom: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                side: isSelected
+                                    ? BorderSide(
+                                  color: Colors.blue.shade700,
+                                  width: 2,
+                                )
+                                    : BorderSide.none,
+                              ),
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(16),
+                                onTap: () {
+                                  if (_isMultiSelectMode) {
+                                    _toggleJobSelection(jobId);
+                                  } else {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => JobPage(jobData: job),
+                                      ),
+                                    );
+                                  }
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(16),
+                                    gradient: LinearGradient(
+                                      colors: isSelected
+                                          ? [
+                                        Colors.blue.shade100.withAlpha(100),
+                                        Colors.blue.shade50.withAlpha(50),
+                                      ]
+                                          : [
+                                        Colors.lightBlue.shade200.withAlpha(70),
+                                        Colors.lightBlue.shade400.withAlpha(70),
+                                        Colors.lightBlue.shade200.withAlpha(70)
+                                      ],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      if (_isMultiSelectMode)
+                                        Padding(
+                                          padding: const EdgeInsets.only(right: 12),
+                                          child: Container(
+                                            width: 24,
+                                            height: 24,
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              border: Border.all(
+                                                color: isSelected
+                                                    ? Colors.blue.shade700
+                                                    : Colors.grey.shade400,
+                                                width: 2,
+                                              ),
                                               color: isSelected
                                                   ? Colors.blue.shade700
-                                                  : Colors.grey.shade400,
-                                              width: 2,
+                                                  : Colors.transparent,
                                             ),
-                                            color: isSelected
-                                                ? Colors.blue.shade700
-                                                : Colors.transparent,
+                                            child: isSelected
+                                                ? const Icon(
+                                              Icons.check,
+                                              size: 16,
+                                              color: Colors.white,
+                                            )
+                                                : null,
                                           ),
-                                          child: isSelected
-                                              ? const Icon(
-                                            Icons.check,
-                                            size: 16,
-                                            color: Colors.white,
-                                          )
-                                              : null,
                                         ),
-                                      ),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            jobTitle,
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.grey.shade800,
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              jobTitle,
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.grey.shade800,
+                                              ),
                                             ),
-                                          ),
-                                          const SizedBox(height: 8),
-                                          Row(
-                                            children: [
-                                              Container(
-                                                padding: const EdgeInsets.symmetric(
-                                                  horizontal: 10,
-                                                  vertical: 4,
-                                                ),
-                                                decoration: BoxDecoration(
-                                                  color: getRiskColor(),
-                                                  borderRadius: BorderRadius.circular(12),
-                                                ),
-                                                child: Text(
-                                                  riskLevel.toUpperCase(),
-                                                  style: const TextStyle(
-                                                    color: Colors.white,
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 11,
-                                                    letterSpacing: 0.5,
+                                            const SizedBox(height: 8),
+                                            Row(
+                                              children: [
+                                                Container(
+                                                  padding: const EdgeInsets.symmetric(
+                                                    horizontal: 10,
+                                                    vertical: 4,
                                                   ),
-                                                ),
-                                              ),
-                                              const SizedBox(width: 8),
-                                              Text(
-                                                "$riskPercent% risk",
-                                                style: TextStyle(
-                                                  fontSize: 14,
-                                                  color: Colors.grey.shade600,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    if (!_isMultiSelectMode)
-                                      IconButton(
-                                        icon: Icon(
-                                          Icons.delete_outline,
-                                          color: Colors.red.shade400,
-                                        ),
-                                        onPressed: () async {
-                                          final confirm = await showDialog<bool>(
-                                            context: context,
-                                            builder: (_) => AlertDialog(
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(20),
-                                              ),
-                                              title: const Text(
-                                                "Remove job?",
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                              content: Text(
-                                                "Remove \"$jobTitle\" from saved jobs?",
-                                                style: const TextStyle(height: 1.5),
-                                              ),
-                                              actions: [
-                                                TextButton(
-                                                  onPressed: () => Navigator.pop(context, false),
-                                                  child: Text(
-                                                    "Cancel",
-                                                    style: TextStyle(
-                                                      color: Colors.grey.shade600,
-                                                    ),
+                                                  decoration: BoxDecoration(
+                                                    color: getRiskColor(),
+                                                    borderRadius: BorderRadius.circular(12),
                                                   ),
-                                                ),
-                                                TextButton(
-                                                  onPressed: () => Navigator.pop(context, true),
                                                   child: Text(
-                                                    "Remove",
-                                                    style: TextStyle(
-                                                      color: Colors.red.shade600,
+                                                    riskLevel.toUpperCase(),
+                                                    style: const TextStyle(
+                                                      color: Colors.white,
                                                       fontWeight: FontWeight.bold,
+                                                      fontSize: 11,
+                                                      letterSpacing: 0.5,
                                                     ),
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 8),
+                                                Text(
+                                                  "$riskPercent% risk",
+                                                  style: TextStyle(
+                                                    fontSize: 14,
+                                                    color: Colors.grey.shade600,
                                                   ),
                                                 ),
                                               ],
                                             ),
-                                          );
-                                          if (confirm == true) {
-                                            _removeJob(jobId, jobTitle);
-                                          }
-                                        },
+                                          ],
+                                        ),
                                       ),
-                                  ],
+                                      if (!_isMultiSelectMode)
+                                        IconButton(
+                                          icon: Icon(
+                                            Icons.menu_book,
+                                            color: Colors.blue,
+                                          ),
+                                          onPressed: () async {
+
+                                          },
+                                        ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
