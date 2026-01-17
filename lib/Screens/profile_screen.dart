@@ -1,5 +1,6 @@
 import 'package:career_guidance/Screens/login_screen.dart';
 import 'package:career_guidance/Theme/theme.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -14,12 +15,62 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _isLoading = false;
   bool _isEditingName = false;
   bool _isEditingPassword = false;
+  bool _isEditingPreferences = false;
+  bool _isLoadingPreferences = true;
+  bool _isSavingPreferences = false;
 
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _currentPasswordController = TextEditingController();
   final _newPasswordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final _dreamJobController = TextEditingController();
+  final _scrollController = ScrollController();
+
+  // Preferences data
+  String _selectedCurrentStatus = '';
+  String _selectedLearningStyle = '';
+  Set<String> _selectedInterests = {};
+
+  // Options for dropdowns
+  static const List<String> _currentStatusOptions = [
+    'Middle School Student',
+    'High School Student',
+    'College/University Student',
+    'Recent Graduate',
+    'Currently Working',
+    'Career Changer',
+  ];
+
+  static const List<String> _learningStyleOptions = [
+    'Online Courses',
+    'Video Tutorials',
+    'Books & Articles',
+    'Hands-on Projects',
+    'Mentorship',
+    'Bootcamps',
+  ];
+
+  static const List<String> _interestOptions = [
+    'Technology',
+    'Healthcare',
+    'Business',
+    'Arts & Design',
+    'Education',
+    'Science',
+    'Engineering',
+    'Finance',
+    'Marketing',
+    'Law',
+    'Media',
+    'Social Services',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPreferences();
+  }
 
   @override
   void dispose() {
@@ -28,7 +79,105 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _currentPasswordController.dispose();
     _newPasswordController.dispose();
     _confirmPasswordController.dispose();
+    _dreamJobController.dispose();
+    _scrollController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadPreferences() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+
+      if (doc.exists && mounted) {
+        final data = doc.data()!;
+        setState(() {
+          _dreamJobController.text = data['dream_job'] ?? '';
+          _selectedCurrentStatus = data['current_status'] ?? '';
+          _selectedLearningStyle = data['learning_style'] ?? '';
+          _selectedInterests = Set<String>.from(data['interests'] ?? []);
+          _isLoadingPreferences = false;
+        });
+      } else if (mounted) {
+        setState(() {
+          _isLoadingPreferences = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading preferences: $e');
+      if (mounted) {
+        setState(() {
+          _isLoadingPreferences = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _savePreferences() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    if (_dreamJobController.text.trim().isEmpty) {
+      _showSnackBar('Please enter your dream job', isError: true);
+      return;
+    }
+
+    if (_selectedCurrentStatus.isEmpty) {
+      _showSnackBar('Please select your current status', isError: true);
+      return;
+    }
+
+    setState(() {
+      _isSavingPreferences = true;
+    });
+
+    try {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .set({
+        'dream_job': _dreamJobController.text.trim(),
+        'current_status': _selectedCurrentStatus,
+        'learning_style': _selectedLearningStyle,
+        'interests': _selectedInterests.toList(),
+        'updated_at': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+
+      setState(() {
+        _isEditingPreferences = false;
+        _isSavingPreferences = false;
+      });
+
+      if (mounted) {
+        _showSnackBar('Preferences saved successfully', isError: false);
+      }
+    } catch (e) {
+      debugPrint('Error saving preferences: $e');
+      setState(() {
+        _isSavingPreferences = false;
+      });
+      if (mounted) {
+        _showSnackBar('Error saving preferences. Please try again.', isError: true);
+      }
+    }
+  }
+
+  void _startEditingPreferences() {
+    setState(() {
+      _isEditingPreferences = true;
+    });
+  }
+
+  void _cancelEditingPreferences() {
+    _loadPreferences();
+    setState(() {
+      _isEditingPreferences = false;
+    });
   }
 
   Future<void> _handleSignOut() async {
@@ -356,6 +505,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
 
           return SingleChildScrollView(
+            controller: _scrollController,
             padding: const EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -561,6 +711,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
 
                 const SizedBox(height: 24),
+
+                // Preferences Section
+                _buildPreferencesSection(),
+
+                const SizedBox(height: 8),
 
                 // Sign Out Button
                 Material(
@@ -930,6 +1085,440 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ],
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPreferencesSection() {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 16),
+      elevation: 3,
+      shadowColor: Colors.purple.shade700.withOpacity(0.3),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          gradient: LinearGradient(
+            colors: [
+              Colors.purple.shade700.withOpacity(0.05),
+              Colors.white,
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Section Header
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.purple.shade100,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.route,
+                    color: Colors.purple.shade700,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Career Preferences',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey.shade800,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Help us personalize your career path',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (!_isEditingPreferences && !_isLoadingPreferences)
+                  IconButton(
+                    icon: Icon(
+                      Icons.edit,
+                      size: 20,
+                      color: Colors.purple.shade700,
+                    ),
+                    onPressed: _startEditingPreferences,
+                  ),
+              ],
+            ),
+
+            const SizedBox(height: 24),
+
+            if (_isLoadingPreferences)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(20),
+                  child: CircularProgressIndicator(),
+                ),
+              )
+            else ...[
+              // Dream Job Field
+              _buildPreferenceField(
+                icon: Icons.stars,
+                label: 'Dream Job / Career Goal',
+                hint: 'e.g., Software Engineer, Doctor, Designer',
+                isEditing: _isEditingPreferences,
+                child: _isEditingPreferences
+                    ? TextField(
+                        controller: _dreamJobController,
+                        decoration: InputDecoration(
+                          isDense: true,
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 12,
+                            horizontal: 12,
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide(color: Colors.purple.shade400),
+                          ),
+                          hintText: 'Enter your dream job',
+                          hintStyle: TextStyle(color: Colors.grey.shade400),
+                        ),
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey.shade800,
+                        ),
+                      )
+                    : Text(
+                        _dreamJobController.text.isEmpty
+                            ? 'Not set'
+                            : _dreamJobController.text,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: _dreamJobController.text.isEmpty
+                              ? Colors.grey.shade400
+                              : Colors.grey.shade800,
+                        ),
+                      ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // Current Status Dropdown
+              _buildPreferenceField(
+                icon: Icons.school,
+                label: 'Current Status',
+                hint: 'Where are you in your journey?',
+                isEditing: _isEditingPreferences,
+                child: _isEditingPreferences
+                    ? Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: Colors.grey.shade300),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: _selectedCurrentStatus.isEmpty
+                                ? null
+                                : _selectedCurrentStatus,
+                            hint: Text(
+                              'Select your current status',
+                              style: TextStyle(color: Colors.grey.shade400),
+                            ),
+                            isExpanded: true,
+                            icon: Icon(Icons.arrow_drop_down,
+                                color: Colors.purple.shade400),
+                            items: _currentStatusOptions.map((status) {
+                              return DropdownMenuItem(
+                                value: status,
+                                child: Text(status),
+                              );
+                            }).toList(),
+                            onChanged: (value) {
+                              setState(() {
+                                _selectedCurrentStatus = value ?? '';
+                              });
+                            },
+                          ),
+                        ),
+                      )
+                    : Text(
+                        _selectedCurrentStatus.isEmpty
+                            ? 'Not set'
+                            : _selectedCurrentStatus,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: _selectedCurrentStatus.isEmpty
+                              ? Colors.grey.shade400
+                              : Colors.grey.shade800,
+                        ),
+                      ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // Learning Style Dropdown
+              _buildPreferenceField(
+                icon: Icons.lightbulb,
+                label: 'Preferred Learning Style',
+                hint: 'How do you learn best?',
+                isEditing: _isEditingPreferences,
+                child: _isEditingPreferences
+                    ? Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: Colors.grey.shade300),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: _selectedLearningStyle.isEmpty
+                                ? null
+                                : _selectedLearningStyle,
+                            hint: Text(
+                              'Select your learning style',
+                              style: TextStyle(color: Colors.grey.shade400),
+                            ),
+                            isExpanded: true,
+                            icon: Icon(Icons.arrow_drop_down,
+                                color: Colors.purple.shade400),
+                            items: _learningStyleOptions.map((style) {
+                              return DropdownMenuItem(
+                                value: style,
+                                child: Text(style),
+                              );
+                            }).toList(),
+                            onChanged: (value) {
+                              setState(() {
+                                _selectedLearningStyle = value ?? '';
+                              });
+                            },
+                          ),
+                        ),
+                      )
+                    : Text(
+                        _selectedLearningStyle.isEmpty
+                            ? 'Not set'
+                            : _selectedLearningStyle,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: _selectedLearningStyle.isEmpty
+                              ? Colors.grey.shade400
+                              : Colors.grey.shade800,
+                        ),
+                      ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // Interests Multi-select
+              _buildPreferenceField(
+                icon: Icons.interests,
+                label: 'Areas of Interest',
+                hint: 'Select all that apply',
+                isEditing: _isEditingPreferences,
+                child: _isEditingPreferences
+                    ? Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: _interestOptions.map((interest) {
+                          final isSelected =
+                              _selectedInterests.contains(interest);
+                          return FilterChip(
+                            label: Text(
+                              interest,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: isSelected
+                                    ? Colors.white
+                                    : Colors.grey.shade700,
+                              ),
+                            ),
+                            selected: isSelected,
+                            onSelected: (selected) {
+                              setState(() {
+                                if (selected) {
+                                  _selectedInterests.add(interest);
+                                } else {
+                                  _selectedInterests.remove(interest);
+                                }
+                              });
+                            },
+                            backgroundColor: Colors.grey.shade100,
+                            selectedColor: Colors.purple.shade400,
+                            checkmarkColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                          );
+                        }).toList(),
+                      )
+                    : _selectedInterests.isEmpty
+                        ? Text(
+                            'Not set',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey.shade400,
+                            ),
+                          )
+                        : Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: _selectedInterests.map((interest) {
+                              return Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.purple.shade100,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Text(
+                                  interest,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.purple.shade700,
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+              ),
+
+              // Save/Cancel buttons for preferences
+              if (_isEditingPreferences) ...[
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextButton(
+                        onPressed:
+                            _isSavingPreferences ? null : _cancelEditingPreferences,
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Text(
+                          'Cancel',
+                          style: TextStyle(color: Colors.grey.shade600),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: _isSavingPreferences ? null : _savePreferences,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.purple.shade600,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: _isSavingPreferences
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Text('Save Preferences'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPreferenceField({
+    required IconData icon,
+    required String label,
+    required String hint,
+    required bool isEditing,
+    required Widget child,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                icon,
+                color: Colors.purple.shade400,
+                size: 20,
+              ),
+              const SizedBox(width: 10),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.grey.shade700,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          if (isEditing) ...[
+            const SizedBox(height: 4),
+            Text(
+              hint,
+              style: TextStyle(
+                fontSize: 11,
+                color: Colors.grey.shade500,
+              ),
+            ),
+          ],
+          const SizedBox(height: 12),
+          child,
         ],
       ),
     );
