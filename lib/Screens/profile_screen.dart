@@ -414,7 +414,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         foregroundColor: Colors.black,
         elevation: 0,
         title: Text(
-          'Profile',
+          'Profile 2',
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
