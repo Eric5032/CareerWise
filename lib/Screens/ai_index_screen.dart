@@ -287,125 +287,128 @@ class _AIIndexScreenState extends State<AIIndexScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
+    return GestureDetector(
+      onTap: () => FocusManager.instance.primaryFocus!.unfocus(),
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: kSurfaceLight,
+          foregroundColor: Colors.black,
+          elevation: 0,
+          title: Column(
+            children: [
+              Text(
+                'Explore Career Paths',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey.shade800,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            IconButton(
+              icon: Icon(_isSearching ? Icons.close : Icons.search),
+              onPressed: _toggleSearch,
+              tooltip: _isSearching ? 'Close search' : 'Search jobs',
+            ),
+          ],
+        ),
         backgroundColor: kSurfaceLight,
-        foregroundColor: Colors.black,
-        elevation: 0,
-        title: Column(
+        body: Column(
           children: [
-            Text(
-              'Explore Career Paths',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey.shade800,
+            // Search Bar with animation
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              height: _isSearching ? 80 : 0,
+              child: _isSearching
+                  ? Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: kBannerColor,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: TextField(
+                  controller: _searchController,
+                  autofocus: true,
+                  onChanged: (value) => setState(() => _query = value),
+                  decoration: InputDecoration(
+                    hintText: "Search for jobs...",
+                    prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                    suffixIcon: _query.isNotEmpty
+                        ? IconButton(
+                      icon: const Icon(Icons.clear, color: Colors.grey),
+                      onPressed: () {
+                        setState(() {
+                          _query = '';
+                          _searchController.clear();
+                        });
+                      },
+                    )
+                        : null,
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide.none,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
+                  ),
+                ),
+              )
+                  : const SizedBox.shrink(),
+            ),
+            // Main Content
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header with stats
+                    if (_query.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 8),
+                            Text(
+                              'Discover AI automation risks across different sectors',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    // Job Sections
+                    buildSection("Information Technology", tempJobs["Information Technology"] ?? [], context),
+                    buildSection("Healthcare & Medicine", tempJobs["Healthcare & Medicine"] ?? [], context),
+                    buildSection("Transportation & Logistics", tempJobs["Transportation & Logistics"] ?? [], context),
+                    buildSection("Education", tempJobs["Education"] ?? [], context),
+                    buildSection("Arts, Media & Design", tempJobs["Arts, Media & Design"] ?? [], context),
+                    buildSection("Finance & Business", tempJobs["Finance & Business"] ?? [], context),
+                    buildSection("Skilled Trades & Construction", tempJobs["Skilled Trades & Construction"] ?? [], context),
+                    buildSection("Law, Public Safety & Government", tempJobs["Law, Public Safety & Government"] ?? [], context),
+                    buildSection("Hospitality & Tourism", tempJobs["Hospitality & Tourism"] ?? [], context),
+                    const SizedBox(height: 20),
+                  ],
+                ),
               ),
             ),
           ],
         ),
-        actions: [
-          IconButton(
-            icon: Icon(_isSearching ? Icons.close : Icons.search),
-            onPressed: _toggleSearch,
-            tooltip: _isSearching ? 'Close search' : 'Search jobs',
-          ),
-        ],
-      ),
-      backgroundColor: kSurfaceLight,
-      body: Column(
-        children: [
-          // Search Bar with animation
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            height: _isSearching ? 80 : 0,
-            child: _isSearching
-                ? Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: kBannerColor,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: TextField(
-                controller: _searchController,
-                autofocus: true,
-                onChanged: (value) => setState(() => _query = value),
-                decoration: InputDecoration(
-                  hintText: "Search for jobs...",
-                  prefixIcon: const Icon(Icons.search, color: Colors.grey),
-                  suffixIcon: _query.isNotEmpty
-                      ? IconButton(
-                    icon: const Icon(Icons.clear, color: Colors.grey),
-                    onPressed: () {
-                      setState(() {
-                        _query = '';
-                        _searchController.clear();
-                      });
-                    },
-                  )
-                      : null,
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide.none,
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
-                  ),
-                ),
-              ),
-            )
-                : const SizedBox.shrink(),
-          ),
-          // Main Content
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Header with stats
-                  if (_query.isEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 8),
-                          Text(
-                            'Discover AI automation risks across different sectors',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey.shade600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  // Job Sections
-                  buildSection("Information Technology", tempJobs["Information Technology"] ?? [], context),
-                  buildSection("Healthcare & Medicine", tempJobs["Healthcare & Medicine"] ?? [], context),
-                  buildSection("Transportation & Logistics", tempJobs["Transportation & Logistics"] ?? [], context),
-                  buildSection("Education", tempJobs["Education"] ?? [], context),
-                  buildSection("Arts, Media & Design", tempJobs["Arts, Media & Design"] ?? [], context),
-                  buildSection("Finance & Business", tempJobs["Finance & Business"] ?? [], context),
-                  buildSection("Skilled Trades & Construction", tempJobs["Skilled Trades & Construction"] ?? [], context),
-                  buildSection("Law, Public Safety & Government", tempJobs["Law, Public Safety & Government"] ?? [], context),
-                  buildSection("Hospitality & Tourism", tempJobs["Hospitality & Tourism"] ?? [], context),
-                  const SizedBox(height: 20),
-                ],
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

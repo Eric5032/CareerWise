@@ -12,7 +12,24 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _isLoading = false;
-  final Set<String> _collapsedSections = <String>{};
+  bool _isEditingName = false;
+  bool _isEditingPassword = false;
+
+  final _firstNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
+  final _currentPasswordController = TextEditingController();
+  final _newPasswordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+
+  @override
+  void dispose() {
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    _currentPasswordController.dispose();
+    _newPasswordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
 
   Future<void> _handleSignOut() async {
     setState(() => _isLoading = true);
@@ -57,7 +74,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         content: const Text('Are you sure you want to sign out?'),
-        actionsAlignment: MainAxisAlignment.center,
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -85,17 +101,151 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  void _toggleSection(String title) {
+  void _startEditingName(User user) {
+    final currentName = user.displayName ?? '';
+    final nameParts = currentName.split(' ');
+
+    _firstNameController.text = nameParts.isNotEmpty ? nameParts[0] : '';
+    _lastNameController.text = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
+
     setState(() {
-      if (_collapsedSections.contains(title)) {
-        _collapsedSections.remove(title);
-      } else {
-        _collapsedSections.add(title);
-      }
+      _isEditingName = true;
     });
   }
 
-  bool _isSectionCollapsed(String title) => _collapsedSections.contains(title);
+  void _cancelEditingName() {
+    setState(() {
+      _isEditingName = false;
+    });
+    _firstNameController.clear();
+    _lastNameController.clear();
+  }
+
+  Future<void> _saveName() async {
+    final firstName = _firstNameController.text.trim();
+    final lastName = _lastNameController.text.trim();
+
+    if (firstName.isEmpty) {
+      _showSnackBar('Please enter a first name', isError: true);
+      return;
+    }
+
+    final fullName = '$firstName ${lastName}'.trim();
+
+    try {
+      await FirebaseAuth.instance.currentUser?.updateDisplayName(fullName);
+      await FirebaseAuth.instance.currentUser?.reload();
+
+      setState(() {
+        _isEditingName = false;
+      });
+
+      if (mounted) {
+        _showSnackBar('Name updated successfully', isError: false);
+      }
+    } catch (e) {
+      if (mounted) {
+        _showSnackBar('Error updating name: ${e.toString()}', isError: true);
+      }
+    }
+  }
+
+  void _startEditingPassword() {
+    _currentPasswordController.clear();
+    _newPasswordController.clear();
+    _confirmPasswordController.clear();
+
+    setState(() {
+      _isEditingPassword = true;
+    });
+  }
+
+  void _cancelEditingPassword() {
+    setState(() {
+      _isEditingPassword = false;
+    });
+    _currentPasswordController.clear();
+    _newPasswordController.clear();
+    _confirmPasswordController.clear();
+  }
+
+  Future<void> _savePassword(User user) async {
+    final currentPassword = _currentPasswordController.text;
+    final newPassword = _newPasswordController.text;
+    final confirmPassword = _confirmPasswordController.text;
+
+    if (currentPassword.isEmpty || newPassword.isEmpty || confirmPassword.isEmpty) {
+      _showSnackBar('Please fill in all fields', isError: true);
+      return;
+    }
+
+    if (newPassword != confirmPassword) {
+      _showSnackBar('New passwords do not match', isError: true);
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      _showSnackBar('Password must be at least 6 characters', isError: true);
+      return;
+    }
+
+    try {
+      // Re-authenticate the user
+      final credential = EmailAuthProvider.credential(
+        email: user.email!,
+        password: currentPassword,
+      );
+
+      await user.reauthenticateWithCredential(credential);
+
+      // Update password
+      await user.updatePassword(newPassword);
+
+      setState(() {
+        _isEditingPassword = false;
+      });
+
+      if (mounted) {
+        _showSnackBar('Password changed successfully', isError: false);
+      }
+    } on FirebaseAuthException catch (e) {
+      String message = 'Error changing password';
+      if (e.code == 'wrong-password') {
+        message = 'Current password is incorrect';
+      } else if (e.code == 'weak-password') {
+        message = 'New password is too weak';
+      }
+      if (mounted) {
+        _showSnackBar(message, isError: true);
+      }
+    } catch (e) {
+      if (mounted) {
+        _showSnackBar('Error: ${e.toString()}', isError: true);
+      }
+    }
+  }
+
+  void _showSnackBar(String message, {required bool isError}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(
+              isError ? Icons.error_outline : Icons.check_circle_outline,
+              color: Colors.white,
+            ),
+            const SizedBox(width: 12),
+            Expanded(child: Text(message)),
+          ],
+        ),
+        backgroundColor: isError ? Colors.red.shade600 : Colors.green.shade600,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+    );
+  }
 
   String _getInitials(String? name) {
     if (name == null || name.isEmpty) return '?';
@@ -104,23 +254,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
     }
     return name[0].toUpperCase();
-  }
-
-  String _getProviderName(String providerId) {
-    switch (providerId) {
-      case 'google.com':
-        return 'Google';
-      case 'password':
-        return 'Email/Password';
-      case 'phone':
-        return 'Phone';
-      case 'facebook.com':
-        return 'Facebook';
-      case 'apple.com':
-        return 'Apple';
-      default:
-        return providerId;
-    }
   }
 
   @override
@@ -217,13 +350,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
           }
 
           final user = snapshot.data!;
+          final currentName = user.displayName ?? '';
+          final nameParts = currentName.split(' ');
+          final firstName = nameParts.isNotEmpty ? nameParts[0] : '';
+          final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Profile Card with All Information
+                // Profile Card
                 Card(
                   margin: const EdgeInsets.only(bottom: 16),
                   elevation: 3,
@@ -306,47 +443,118 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                         const SizedBox(height: 24),
 
-                        // Account Information
-                        _buildInfoItem(
-                          icon: Icons.fingerprint,
-                          label: 'User ID',
-                          value: user.uid,
-                          isMonospace: true,
+                        // Name Section (First and Last)
+                        _buildNameSection(
+                          firstName: firstName,
+                          lastName: lastName,
+                          isEditing: _isEditingName,
+                          onEdit: () => _startEditingName(user),
                         ),
-                        const SizedBox(height: 12),
-                        if (user.metadata.creationTime != null)
-                          _buildInfoItem(
-                            icon: Icons.calendar_today,
-                            label: 'Member Since',
-                            value: _formatDate(user.metadata.creationTime!),
+
+                        // Save/Cancel buttons for name
+                        if (_isEditingName) ...[
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextButton(
+                                  onPressed: _cancelEditingName,
+                                  style: TextButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    'Cancel',
+                                    style: TextStyle(color: Colors.grey.shade600),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: ElevatedButton(
+                                  onPressed: _saveName,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.blue.shade700,
+                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                  child: const Text('Save'),
+                                ),
+                              ),
+                            ],
                           ),
-                        if (user.metadata.creationTime != null)
+                        ],
+
+                        const SizedBox(height: 12),
+
+                        // Password
+                        _buildInfoItem(
+                          icon: Icons.lock,
+                          label: 'Password',
+                          value: '••••••••',
+                          isEditing: _isEditingPassword,
+                          onEdit: _startEditingPassword,
+                        ),
+
+                        // Password change fields
+                        if (_isEditingPassword) ...[
                           const SizedBox(height: 12),
-                        if (user.metadata.lastSignInTime != null)
-                          _buildInfoItem(
-                            icon: Icons.login,
-                            label: 'Last Sign In',
-                            value: _formatDate(user.metadata.lastSignInTime!),
+                          _buildPasswordField(
+                            icon: Icons.lock_outline,
+                            label: 'Current Password',
+                            controller: _currentPasswordController,
                           ),
-                        const SizedBox(height: 12),
-                        _buildInfoItem(
-                          icon: user.emailVerified
-                              ? Icons.verified_user
-                              : Icons.warning_amber_rounded,
-                          label: 'Email Status',
-                          value: user.emailVerified ? 'Verified' : 'Not Verified',
-                          valueColor: user.emailVerified
-                              ? Colors.green.shade700
-                              : Colors.orange.shade700,
-                        ),
-                        const SizedBox(height: 12),
-                        _buildInfoItem(
-                          icon: Icons.password,
-                          label: 'Sign-in Methods',
-                          value: user.providerData
-                              .map((info) => _getProviderName(info.providerId))
-                              .join(', '),
-                        ),
+                          const SizedBox(height: 12),
+                          _buildPasswordField(
+                            icon: Icons.lock_reset,
+                            label: 'New Password',
+                            controller: _newPasswordController,
+                          ),
+                          const SizedBox(height: 12),
+                          _buildPasswordField(
+                            icon: Icons.lock,
+                            label: 'Confirm New Password',
+                            controller: _confirmPasswordController,
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextButton(
+                                  onPressed: _cancelEditingPassword,
+                                  style: TextButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    'Cancel',
+                                    style: TextStyle(color: Colors.grey.shade600),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: ElevatedButton(
+                                  onPressed: () => _savePassword(user),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.blue.shade700,
+                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                  child: const Text('Save'),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -429,12 +637,170 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  Widget _buildNameSection({
+    required String firstName,
+    required String lastName,
+    required bool isEditing,
+    required VoidCallback onEdit,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.person,
+                color: Colors.grey.shade600,
+                size: 20,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Name',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade600,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    if (!isEditing)
+                      Text(
+                        '${firstName.isEmpty ? 'Not set' : firstName} ${lastName}',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey.shade800,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                  ],
+                ),
+              ),
+              if (!isEditing)
+                IconButton(
+                  icon: Icon(
+                    Icons.edit,
+                    size: 20,
+                    color: Colors.blue.shade700,
+                  ),
+                  onPressed: onEdit,
+                ),
+            ],
+          ),
+          if (isEditing) ...[
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Icon(
+                  Icons.person_outline,
+                  color: Colors.grey.shade600,
+                  size: 20,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'First Name',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      TextField(
+                        controller: _firstNameController,
+                        decoration: InputDecoration(
+                          isDense: true,
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 8,
+                            horizontal: 0,
+                          ),
+                          border: InputBorder.none,
+                          hintText: 'Enter First Name',
+                        ),
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey.shade800,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Icon(
+                  Icons.person,
+                  color: Colors.grey.shade600,
+                  size: 20,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Last Name',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      TextField(
+                        controller: _lastNameController,
+                        decoration: InputDecoration(
+                          isDense: true,
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 8,
+                            horizontal: 0,
+                          ),
+                          border: InputBorder.none,
+                          hintText: 'Enter Last Name',
+                        ),
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey.shade800,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
   Widget _buildInfoItem({
     required IconData icon,
     required String label,
     required String value,
-    bool isMonospace = false,
-    Color? valueColor,
+    bool isEditing = false,
+    TextEditingController? controller,
+    VoidCallback? onEdit,
+    bool showEditButton = true,
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -464,16 +830,102 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
                 const SizedBox(height: 4),
+                if (isEditing && controller != null)
+                  TextField(
+                    controller: controller,
+                    decoration: InputDecoration(
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 8,
+                        horizontal: 0,
+                      ),
+                      border: InputBorder.none,
+                      hintText: 'Enter $label',
+                    ),
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey.shade800,
+                    ),
+                  )
+                else
+                  Text(
+                    value,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey.shade800,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+              ],
+            ),
+          ),
+          if (showEditButton && onEdit != null && !isEditing)
+            IconButton(
+              icon: Icon(
+                Icons.edit,
+                size: 20,
+                color: Colors.blue.shade700,
+              ),
+              onPressed: onEdit,
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPasswordField({
+    required IconData icon,
+    required String label,
+    required TextEditingController controller,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            color: Colors.grey.shade600,
+            size: 20,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 Text(
-                  value,
+                  label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey.shade600,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                TextField(
+                  controller: controller,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 8,
+                      horizontal: 0,
+                    ),
+                    border: InputBorder.none,
+                    hintText: 'Enter $label',
+                  ),
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    fontFamily: isMonospace ? 'monospace' : null,
-                    color: valueColor ?? Colors.grey.shade800,
+                    color: Colors.grey.shade800,
                   ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
@@ -481,24 +933,5 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ],
       ),
     );
-  }
-
-  String _formatDate(DateTime date) {
-    final now = DateTime.now();
-    final difference = now.difference(date);
-
-    if (difference.inDays == 0) {
-      return 'Today';
-    } else if (difference.inDays == 1) {
-      return 'Yesterday';
-    } else if (difference.inDays < 7) {
-      return '${difference.inDays} days ago';
-    } else if (difference.inDays < 30) {
-      return '${(difference.inDays / 7).floor()} weeks ago';
-    } else if (difference.inDays < 365) {
-      return '${(difference.inDays / 30).floor()} months ago';
-    } else {
-      return '${date.day}/${date.month}/${date.year}';
-    }
   }
 }

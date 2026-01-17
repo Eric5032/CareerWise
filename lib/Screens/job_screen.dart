@@ -1,9 +1,12 @@
 import 'dart:convert';
 import 'package:career_guidance/Theme/theme.dart';
 import 'package:career_guidance/Screens/mentor_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import '../data/saved_jobs.dart';
+import '../data/soft_skills.dart';
 import 'company_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class JobPage extends StatefulWidget {
@@ -20,10 +23,15 @@ class _JobPageState extends State<JobPage> with SingleTickerProviderStateMixin {
   late bool isSaved;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
+  final user = FirebaseAuth.instance.currentUser;
+  final firestore = FirebaseFirestore.instance;
+  bool _isLoadingCheck = true;
 
   @override
   void initState() {
     super.initState();
+
+    // Initial check from local saved jobs
     isSaved = savedJobs.any(
           (job) => job['job_title'] == widget.jobData['job_title'],
     );
@@ -39,6 +47,9 @@ class _JobPageState extends State<JobPage> with SingleTickerProviderStateMixin {
     );
 
     _animationController.forward();
+
+    // Check Firebase for saved status
+    _checkIfJobIsSavedInFirebase();
   }
 
   @override
@@ -46,6 +57,49 @@ class _JobPageState extends State<JobPage> with SingleTickerProviderStateMixin {
     _animationController.dispose();
     _controller.dispose();
     super.dispose();
+  }
+
+  /// Check if the job is already saved in Firebase
+  Future<void> _checkIfJobIsSavedInFirebase() async {
+    if (user == null) {
+      setState(() {
+        _isLoadingCheck = false;
+      });
+      return;
+    }
+
+    try {
+      CollectionReference jobData = firestore
+          .collection("users")
+          .doc(user!.uid)
+          .collection("job_data");
+
+      final query = await jobData
+          .where("job_title", isEqualTo: widget.jobData['job_title'])
+          .limit(1)
+          .get();
+
+      setState(() {
+        isSaved = query.docs.isNotEmpty;
+        _isLoadingCheck = false;
+      });
+
+      // Sync with local savedJobs list
+      if (isSaved && !savedJobs.any((job) => job['job_title'] == widget.jobData['job_title'])) {
+        savedJobs.add(widget.jobData);
+        await _persistSavedJobs();
+      } else if (!isSaved && savedJobs.any((job) => job['job_title'] == widget.jobData['job_title'])) {
+        savedJobs.removeWhere((job) => job['job_title'] == widget.jobData['job_title']);
+        await _persistSavedJobs();
+      }
+
+      debugPrint('Firebase check complete: Job is ${isSaved ? "saved" : "not saved"}');
+    } catch (e) {
+      debugPrint('Error checking Firebase for saved job: $e');
+      setState(() {
+        _isLoadingCheck = false;
+      });
+    }
   }
 
   Future<void> _persistSavedJobs() async {
@@ -59,50 +113,53 @@ class _JobPageState extends State<JobPage> with SingleTickerProviderStateMixin {
   }
 
   void toggleSave() async {
+    if (isSaved) {
+      savedJobs.removeWhere(
+            (job) => job['job_title'] == widget.jobData['job_title'],
+      );
+      removeJobData();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Row(
+            children: [
+              Icon(Icons.bookmark_remove, color: Colors.white),
+              SizedBox(width: 12),
+              Text("Job removed from saved"),
+            ],
+          ),
+          backgroundColor: Colors.red.shade600,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          margin: const EdgeInsets.all(16),
+        ),
+      );
+    } else {
+      savedJobs.add(widget.jobData);
+      await saveJobData();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Row(
+            children: [
+              Icon(Icons.bookmark_added, color: Colors.white),
+              SizedBox(width: 12),
+              Text("Job saved successfully"),
+            ],
+          ),
+          backgroundColor: Colors.green.shade600,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          margin: const EdgeInsets.all(16),
+        ),
+      );
+    }
     setState(() {
-      if (isSaved) {
-        savedJobs.removeWhere(
-              (job) => job['job_title'] == widget.jobData['job_title'],
-        );
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Row(
-              children: [
-                Icon(Icons.bookmark_remove, color: Colors.white),
-                SizedBox(width: 12),
-                Text("Job removed from saved"),
-              ],
-            ),
-            backgroundColor: Colors.red.shade600,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            margin: const EdgeInsets.all(16),
-          ),
-        );
-      } else {
-        savedJobs.add(widget.jobData);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Row(
-              children: [
-                Icon(Icons.bookmark_added, color: Colors.white),
-                SizedBox(width: 12),
-                Text("Job saved successfully"),
-              ],
-            ),
-            backgroundColor: Colors.green.shade600,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            margin: const EdgeInsets.all(16),
-          ),
-        );
-      }
       isSaved = !isSaved;
     });
+
     await _persistSavedJobs();
   }
 
@@ -132,13 +189,26 @@ class _JobPageState extends State<JobPage> with SingleTickerProviderStateMixin {
     }
   }
 
+  Future<void> saveJobData() async {
+    CollectionReference jobData = firestore.collection("users").doc(user!.uid).collection("job_data");
+    await jobData.add(widget.jobData);
+  }
+
+  Future<void> removeJobData() async {
+    CollectionReference jobData = firestore.collection("users").doc(user!.uid).collection("job_data");
+    final query = await jobData.where("job_title", isEqualTo: widget.jobData['job_title']).get();
+    for (var doc in query.docs) {
+      await doc.reference.delete();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final jobData = widget.jobData;
     final title = jobData['job_title'] ?? 'Unknown Job';
     final description = jobData['job_description'] ?? 'No description available.';
-    final riskLevel = jobData['risk_level'] ?? 'Unknown';
+    var riskLevel;
     final riskPercent = jobData['automation_risk_percent'] ?? 0;
     final explanation = jobData['explanation'] ?? '';
     final averageSalary = jobData['average_salary'] ?? 0;
@@ -146,11 +216,25 @@ class _JobPageState extends State<JobPage> with SingleTickerProviderStateMixin {
     final String jobOutlookPercentage = jobData['job_outlook_percentage'] ?? '';
     final String entryLevelEducation = jobData['entry_level_education'] ?? '';
 
+    setState(() {
+      if(riskPercent == 0){
+        riskPercent == null;
+      } else if(riskPercent <= 25){
+        riskLevel = "Low";
+      }else if(riskPercent <= 75){
+        riskLevel = "Medium";
+      }else if(riskPercent <= 100){
+        riskLevel = "High";
+      }
+    });
+
     final List<Map<String, dynamic>> companies =
     List<Map<String, dynamic>>.from((jobData['notable_companies'] ?? const []));
     final List<Map<String, dynamic>> degrees =
     List<Map<String, dynamic>>.from((jobData['degree_recommendation'] ?? const []));
-    final List<String> skills = List<String>.from(jobData['skills_needed'] ?? []);
+    final List<String> hardSkills = List<String>.from(jobData['skills_needed'] ?? []);
+    final List<String> softSkills = List<String>.from(jobData['soft_skills'] ?? []);
+    final String softSkillsApplication = jobData['soft_skills_application'] ?? '';
 
     final riskColor = getBadgeColor(riskLevel);
 
@@ -170,7 +254,21 @@ class _JobPageState extends State<JobPage> with SingleTickerProviderStateMixin {
           foregroundColor: Colors.black,
           elevation: 0,
           actions: [
-            IconButton(
+            _isLoadingCheck
+                ? Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    Colors.lightBlue.shade700,
+                  ),
+                ),
+              ),
+            )
+                : IconButton(
               icon: Icon(
                 isSaved ? Icons.bookmark : Icons.bookmark_border,
                 color: isSaved ? Colors.lightBlue.shade700 : Colors.black,
@@ -320,9 +418,15 @@ class _JobPageState extends State<JobPage> with SingleTickerProviderStateMixin {
                   const SizedBox(height: 20),
                 ],
 
-                // Skills Needed
-                if (skills.isNotEmpty) ...[
-                  _buildSkillsSection(skills),
+                // Hard Skills Needed
+                if (hardSkills.isNotEmpty) ...[
+                  _buildHardSkillsSection(hardSkills),
+                  const SizedBox(height: 20),
+                ],
+
+                // Soft Skills Section
+                if (softSkills.isNotEmpty) ...[
+                  _buildSoftSkillsSection(softSkills, softSkillsApplication),
                   const SizedBox(height: 20),
                 ],
 
@@ -414,7 +518,7 @@ class _JobPageState extends State<JobPage> with SingleTickerProviderStateMixin {
             icon: Icons.attach_money,
             iconColor: Colors.lightBlue.shade600,
             title: "Annual Pay",
-            value: "\$$averageSalary",
+            value: averageSalary.toString().contains('\$') ? averageSalary.toString() : "\$$averageSalary",
           ),
           const SizedBox(width: 12),
           _buildStatCard(
@@ -805,7 +909,7 @@ class _JobPageState extends State<JobPage> with SingleTickerProviderStateMixin {
     );
   }
 
-  Widget _buildSkillsSection(List<String> skills) {
+  Widget _buildHardSkillsSection(List<String> skills) {
     return Card(
       elevation: 3,
       shape: RoundedRectangleBorder(
@@ -835,11 +939,11 @@ class _JobPageState extends State<JobPage> with SingleTickerProviderStateMixin {
                     color: Colors.lightBlue.shade100,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(Icons.verified, color: Colors.lightBlue.shade700, size: 20),
+                  child: Icon(Icons.code, color: Colors.lightBlue.shade700, size: 20),
                 ),
                 const SizedBox(width: 12),
                 Text(
-                  "Skills Needed",
+                  "Technical Skills",
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -849,40 +953,186 @@ class _JobPageState extends State<JobPage> with SingleTickerProviderStateMixin {
               ],
             ),
             const SizedBox(height: 16),
-            ...skills.map((skill) {
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      margin: const EdgeInsets.only(top: 2),
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: Colors.lightBlue.shade100,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.check,
-                        size: 14,
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: skills.map((skill) {
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Colors.lightBlue.shade200,
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.check_circle,
+                        size: 16,
                         color: Colors.lightBlue.shade700,
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
+                      const SizedBox(width: 8),
+                      Text(
                         skill,
                         style: TextStyle(
-                          fontSize: 15,
-                          height: 1.4,
-                          color: Colors.grey.shade700,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey.shade800,
                         ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSoftSkillsSection(List<String> softSkills, String application) {
+    return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          gradient: LinearGradient(
+            colors: [
+              Colors.purple.shade50,
+              Colors.white,
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.purple.shade100,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(Icons.psychology, color: Colors.purple.shade700, size: 20),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  "Key Soft Skills",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey.shade800,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            ...softSkills.map((skillCategory) {
+              final categoryData = soft_skills_data[skillCategory];
+              if (categoryData == null) return const SizedBox.shrink();
+
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Colors.purple.shade200,
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        margin: const EdgeInsets.only(top: 2),
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: Colors.purple.shade100,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.star,
+                          size: 14,
+                          color: Colors.purple.shade700,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          skillCategory,
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey.shade800,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+            if (application.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.purple.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Colors.purple.shade100,
+                    width: 1.5,
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          size: 18,
+                          color: Colors.purple.shade700,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          "How These Skills Apply",
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.purple.shade700,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      application,
+                      style: TextStyle(
+                        fontSize: 14,
+                        height: 1.5,
+                        color: Colors.grey.shade700,
                       ),
                     ),
                   ],
                 ),
-              );
-            }).toList(),
+              ),
+            ],
           ],
         ),
       ),
@@ -982,19 +1232,21 @@ class _JobPageState extends State<JobPage> with SingleTickerProviderStateMixin {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: toggleSave,
+        onTap: _isLoadingCheck ? null : toggleSave,
         borderRadius: BorderRadius.circular(16),
         child: Ink(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: isSaved
+              colors: _isLoadingCheck
+                  ? [Colors.grey.shade400, Colors.grey.shade500]
+                  : isSaved
                   ? [Colors.red.shade500, Colors.red.shade600]
                   : [Colors.blue.shade600, Colors.blue.shade700],
             ),
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: (isSaved ? Colors.red : Colors.blue).withOpacity(0.3),
+                color: (_isLoadingCheck ? Colors.grey : (isSaved ? Colors.red : Colors.blue)).withOpacity(0.3),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
@@ -1005,14 +1257,28 @@ class _JobPageState extends State<JobPage> with SingleTickerProviderStateMixin {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  isSaved ? Icons.bookmark_remove : Icons.bookmark_add,
-                  color: Colors.white,
-                  size: 24,
-                ),
+                if (_isLoadingCheck)
+                  const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  )
+                else
+                  Icon(
+                    isSaved ? Icons.bookmark_remove : Icons.bookmark_add,
+                    color: Colors.white,
+                    size: 24,
+                  ),
                 const SizedBox(width: 12),
                 Text(
-                  isSaved ? "Remove from Saved" : "Save This Job",
+                  _isLoadingCheck
+                      ? "Checking Status..."
+                      : isSaved
+                      ? "Remove from Saved"
+                      : "Save This Job",
                   style: const TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.bold,

@@ -107,6 +107,7 @@ Rules:
   - recency (YYYY-MM)
 - Prefer official sources, gov/edu reports, and reputable outlets. Avoid spam.
 - Include mixed angles: hiring, skills, salary, macro reports, and role demand.
+- Articles as close to present time as possible.
 
 Example:
 {

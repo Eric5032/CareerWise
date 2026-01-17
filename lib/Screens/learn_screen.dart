@@ -22,6 +22,7 @@ class _LearnScreenState extends State<LearnScreen> {
   String _summary = '';
   List<LearnArticle> _articles = [];
 
+
   @override
   void initState() {
     super.initState();
@@ -29,7 +30,10 @@ class _LearnScreenState extends State<LearnScreen> {
         ? widget.initialTopic!.trim()
         : 'software engineer job market';
     _queryCtrl.text = topic;
-    _fetch(topic);
+
+    if (widget.initialTopic?.trim().isNotEmpty ?? false) {
+      _fetch(topic);
+    }
   }
 
   @override
